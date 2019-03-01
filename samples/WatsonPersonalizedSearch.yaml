@@ -30,6 +30,16 @@ secrets:
   - name: apiKey
     notes: 'Get your API key at https://developer.walmartlabs.com/'
 concepts:
+  - name: 'soda:Dataset'
+    ontology:
+      isSpellAs: dataset
+      subClassOf: ':Showable'
+  - name: 'soda:SearchQuery'
+  - name: 'soda:Datasets'
+    ontology:
+      isSpellAs: datasets
+      isListOf: 'soda:Dataset'
+  - name: ':ZIPCode'
   - name: ':Weather'
   - name: ':Joke'
   - name: ':UseInstance'
@@ -49,6 +59,8 @@ concepts:
     ontology:
       subClassOf: ':GUID'
   - name: 'wps:OrganizationName'
+    ontology:
+      subClassOf: ':UserString'
   - name: 'wps:Instances'
     ontology:
       subClassOf:
@@ -68,17 +80,89 @@ concepts:
   - name: 'wps:Organization'
     ontology:
       subClassOf: ':Showable'
-    attributes:
-      'wps:Instances': instances
-      'wps:OrganizationId': id
-      'wps:OrganizationName': organizationName
+      isSpellAs: organization
   - name: ':GUID'
   - name: ':UserString'
   - name: ':Showable'
-patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](:Joke)' annotates the :Joke concept appropriately\n\t 'show me the [weather](:Weather)' annotates the :Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](:Joke)' annotates the :Joke concept appropriately\n\t 'show me the [weather](:Weather)' annotates the :Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](:ZIPCode)' provides a zip code annotation.\n\t git hub test\n-->\n- use [instanceName](wps:InstanceName)\n- [search](:ActionShow) [for](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [instances](wps:Instances) for[organization](wps:Organization) id\n- [show me](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [organization](wps:Organization) for  id\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](:Joke)' annotates the :Joke concept appropriately\n\t 'show me the [weather](:Weather)' annotates the :Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](:ZIPCode)' provides a zip code annotation.\n-->\n- use [instanceName](wps:InstanceName)\n- [search](:ActionShow) [for](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [instances](wps:Instances) for[organization](wps:Organization) id\n- [show me](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [organization](wps:Organization) for  id\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](:Joke)' annotates the :Joke concept appropriately\n\t 'show me the [weather](:Weather)' annotates the :Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](:ZIPCode)' provides a zip code annotation.\n-->\n- use [instanceName](wps:InstanceName)\n- [search](:ActionShow) [for](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [instances](wps:Instances) for[organization](wps:Organization) id\n- [show me](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [organization](wps:Organization) for  id\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](:Joke)' annotates the :Joke concept appropriately\n\t 'show me the [weather](:Weather)' annotates the :Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](:ZIPCode)' provides a zip code annotation.\n-->\n- use [instanceName](wps:InstanceName)\n- [search](:ActionShow) [for](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [instances](wps:Instances) for[organization](wps:Organization) id\n- [show me](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [organization](wps:Organization) for  id\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](:Joke)' annotates the :Joke concept appropriately\n\t 'show me the [weather](:Weather)' annotates the :Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](:ZIPCode)' provides a zip code annotation.\n-->\n- use [instanceName](wps:InstanceName)\n- [search](:ActionShow) [for](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [instances](wps:Instances) for[organization](wps:Organization) id\n- [show me](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [organization](wps:Organization) for  id"
+patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](:Joke)' annotates the :Joke concept appropriately\n\t 'show me the [weather](:Weather)' annotates the :Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](:ZIPCode)' provides a zip code annotation.\n\t \n\t - find [datasets](soda:Datasets) for [searchquery](soda:SearchQuery)\n\n-->\n- show [organization](wps:Organization)  [named](wps:OrganizationName)\n- use [instanceName](wps:InstanceName)\n- [search](:ActionShow) [for](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [instances](wps:Instances) for [organization](wps:Organization) id\n- [show me](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [organization](wps:Organization) for  id"
 actions:
+  - name: 'soda:SearchForDatasets'
+    signature: 'soda:Datasets (context data :UserString) -> data soda:Datasets'
+    kind: 'nodejs:8'
+    code: |-
+      const request = require('request-promise-native')
+      const eba = require('eba')
+
+      module.exports.main = function (params) {
+        let h = new eba.Params(params)
+        let searchQuery = h.get(":UserString")
+        let tuning = URL.encode("30<60%")
+        let options = {
+          uri: `http://api.us.socrata.com/api/catalog/v1?min_should_match=${tuning}q=${searchQuery}`,
+          headers: {
+              'User-Agent': 'Request-Promise',
+              'Accept' : 'application/json',
+          },
+          json: true // Automatically parses the JSON string in the response
+        };
+
+        return request(options)
+          .then((result) => {
+           // return {error: `Debugging result ${JSON.stringify(result,null,2)}`}
+            // return {error: `Debugging result ${result.data.organizationByName}`}
+            if ( result.results.length > 0 ) {
+              return new eba.Result().setData('soda:Datasets',result.results)
+            } else {
+              return {error: `No datasets found for  ${searchQuery}`}
+            }
+          })
+          .catch((error) => {
+            return { error: `SODA:SearchForDatasets API error: ${error}` }
+          })
+          
+      }
+    notes: in progress
+  - name: 'wps:OrganizationByName'
+    signature: 'wps:Organization (context data :UserString) -> data wps:Organization'
+    kind: 'nodejs:8'
+    code: |-
+      const request = require('request-promise-native')
+      const eba = require('eba')
+
+      module.exports.main = function (params) {
+        let h = new eba.Params(params)
+        let orgname = h.get(":UserString")
+        let options = {
+          uri: `https://searchinsights.ibmmarketingcloud.com/graphql`,
+         
+          headers: {
+              'User-Agent': 'Request-Promise',
+              'Accept' : 'application/json',
+              'Authorization':`Basic ${params.secrets.wpskey}`,
+              'Method':'POST'
+          },
+          body : {"query":`{ organizationByName (name: \"${orgname}\") {  organizationName   instances { instanceName  }  }}`},
+          json: true // Automatically parses the JSON string in the response
+        };
+
+        return request.post(options)
+          .then((result) => {
+           // return {error: `Debugging result ${JSON.stringify(result,null,2)}`}
+            // return {error: `Debugging result ${result.data.organizationByName}`}
+            if ( result.data.organizationByName ) {
+              return new eba.Result().setData('wps:Organization',result.data.organizationByName)
+            } else {
+              return {error: `No organization found with name ${orgname}`}
+            }
+          })
+          .catch((error) => {
+            return { error: `WPS:OrganizationByName API error: ${error}` }
+          })
+          
+      }
+    notes: works with graphql
   - name: 'wps:InstanceByInstanceName'
-    signature: 'patterns (wps:InstanceName (data :UserString)) -> data wps:Instance'
+    signature: 'wps:Instance (wps:InstanceName (data :UserString)) -> data wps:Instance'
     kind: 'nodejs:8'
     code: |-
       const request = require('request-promise-native')
@@ -347,6 +431,24 @@ statics:
     mime: text/jsx
     text: |+
       wps_OrganizationData = ({data}) => {
+        const item = data
+        return (
+          <div key={item.id} className="wmt-product">
+            <div className="wmt-product-info">
+              
+              <div className="wmt-product-info-name">
+                <p><strong>{item.organizationName}</strong></p>
+                <p>It has the following instances</p>
+                {item.instances.map(function(object, i){
+              return <p>{object.instanceName}</p>;
+          })}
+              </div>
+            </div>
+            
+          </div>)
+      }
+
+      wps_OrganizationContent = ({data}) => {
         const item = data
         return (
           <div key={item.id} className="wmt-product">
