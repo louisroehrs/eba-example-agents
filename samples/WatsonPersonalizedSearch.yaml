@@ -6,6 +6,8 @@ meta:
 
     You can try questions like:
 
+    - show organization "CityCool"
+
     - use [instanceName](wps:InstanceName)    -- not yet
 
     - [search](:ActionShow) [for](wps:SearchDocs)
@@ -37,6 +39,7 @@ concepts:
   - name: 'soda:SearchQuery'
   - name: 'soda:Datasets'
     ontology:
+      subClassOf: ':Showable'
       isSpellAs: datasets
       isListOf: 'soda:Dataset'
   - name: ':ZIPCode'
@@ -84,7 +87,7 @@ concepts:
   - name: ':GUID'
   - name: ':UserString'
   - name: ':Showable'
-patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](:Joke)' annotates the :Joke concept appropriately\n\t 'show me the [weather](:Weather)' annotates the :Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](:ZIPCode)' provides a zip code annotation.\n\t \n\t - find [datasets](soda:Datasets) for [searchquery](soda:SearchQuery)\n\n-->\n- show [organization](wps:Organization)  [named](wps:OrganizationName)\n- use [instanceName](wps:InstanceName)\n- [search](:ActionShow) [for](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [instances](wps:Instances) for [organization](wps:Organization) id\n- [show me](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [organization](wps:Organization) for  id"
+patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](:Joke)' annotates the :Joke concept appropriately\n\t 'show me the [weather](:Weather)' annotates the :Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](:ZIPCode)' provides a zip code annotation.\n\t \n\t - find [datasets](soda:Datasets) for [searchquery](soda:SearchQuery)\n\n-->\n- show [information](soda:Datasets) for [datasetquery](soda:SearchQuery)\n- show [datasets](soda:Datasets) for [datasetquery](soda:SearchQuery)\n- show [organization](wps:Organization)  [named](wps:OrganizationName)\n- use [instanceName](wps:InstanceName)\n- [search](:ActionShow) [for](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [instances](wps:Instances) for [organization](wps:Organization) id\n- [show me](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [organization](wps:Organization) for  id"
 actions:
   - name: 'soda:SearchForDatasets'
     signature: 'soda:Datasets (context data :UserString) -> data soda:Datasets'
@@ -96,9 +99,9 @@ actions:
       module.exports.main = function (params) {
         let h = new eba.Params(params)
         let searchQuery = h.get(":UserString")
-        let tuning = URL.encode("30<60%")
+        let tuning = encodeURIComponent("30<60%")
         let options = {
-          uri: `http://api.us.socrata.com/api/catalog/v1?min_should_match=${tuning}q=${searchQuery}`,
+          uri: `http://api.us.socrata.com/api/catalog/v1?min_should_match=${tuning}&q=${searchQuery}&limit=5`,
           headers: {
               'User-Agent': 'Request-Promise',
               'Accept' : 'application/json',
