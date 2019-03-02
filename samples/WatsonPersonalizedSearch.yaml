@@ -24,6 +24,7 @@ meta:
   name: Watson Personalized Search Agent
   icon: >-
     http://images5.fanpop.com/image/polls/868000/868791_1320146639104_full.jpg?v=1320146712
+  protected: true
 secrets:
   - name: instancesearchkey
     notes: Dillards_WSI_Instance in production
@@ -32,16 +33,25 @@ secrets:
   - name: apiKey
     notes: 'Get your API key at https://developer.walmartlabs.com/'
 concepts:
+  - name: 'soda:DatasetSearchResultId'
+  - name: 'soda:DatasetSearchResultName'
   - name: 'soda:Dataset'
+  - name: 'soda:DatasetName'
+  - name: 'soda:DatasetId'
+  - name: 'soda:Information'
+  - name: 'soda:DatasetSearchResult'
     ontology:
-      isSpellAs: dataset
+      isSpellAs: dataset result
       subClassOf: ':Showable'
+    attributes:
+      'soda:DatasetSearchResultName': resource.name
+      'soda:DatasetSearchResultId': resource.id
   - name: 'soda:SearchQuery'
-  - name: 'soda:Datasets'
+  - name: 'soda:DatasetSearchResults'
     ontology:
+      isSpellAs: dataset results
       subClassOf: ':Showable'
-      isSpellAs: datasets
-      isListOf: 'soda:Dataset'
+      isListOf: 'soda:DatasetSearchResult'
   - name: ':ZIPCode'
   - name: ':Weather'
   - name: ':Joke'
@@ -87,10 +97,12 @@ concepts:
   - name: ':GUID'
   - name: ':UserString'
   - name: ':Showable'
-patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](:Joke)' annotates the :Joke concept appropriately\n\t 'show me the [weather](:Weather)' annotates the :Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](:ZIPCode)' provides a zip code annotation.\n\t \n\t - find [datasets](soda:Datasets) for [searchquery](soda:SearchQuery)\n\n-->\n- show [information](soda:Datasets) for [datasetquery](soda:SearchQuery)\n- show [datasets](soda:Datasets) for [datasetquery](soda:SearchQuery)\n- show [organization](wps:Organization)  [named](wps:OrganizationName)\n- use [instanceName](wps:InstanceName)\n- [search](:ActionShow) [for](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [instances](wps:Instances) for [organization](wps:Organization) id\n- [show me](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [organization](wps:Organization) for  id"
+patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](:Joke)' annotates the :Joke concept appropriately\n\t 'show me the [weather](:Weather)' annotates the :Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](:ZIPCode)' provides a zip code annotation.\n\t \n\t - find [datasets](soda:Datasets) for [searchquery](soda:SearchQuery)\n\n-->\n- get [dataset](soda:Dataset) for [datasetname](soda:DatasetSearchResultName)\n- show [information](soda:Information) for [datasetquery](soda:SearchQuery)\n- show [datasets](soda:DatasetSearchResults) for [datasetquery](soda:SearchQuery)\n- show [organization](wps:Organization)  [named](wps:OrganizationName)\n- use [instanceName](wps:InstanceName)\n- [search](:ActionShow) [for](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [instances](wps:Instances) for [organization](wps:Organization) id\n- [show me](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [organization](wps:Organization) for  id"
 actions:
-  - name: 'soda:SearchForDatasets'
-    signature: 'soda:Datasets (context data :UserString) -> data soda:Datasets'
+  - name: 'soda:FetchDataset'
+    signature: >-
+      soda:Dataset (context soda:DatasetSearchResult (data
+      soda:DatasetSearchResultName)) -> data soda:Dataset
     kind: 'nodejs:8'
     code: |-
       const request = require('request-promise-native')
@@ -114,7 +126,45 @@ actions:
            // return {error: `Debugging result ${JSON.stringify(result,null,2)}`}
             // return {error: `Debugging result ${result.data.organizationByName}`}
             if ( result.results.length > 0 ) {
-              return new eba.Result().setData('soda:Datasets',result.results)
+              return new eba.Result().setData('soda:Dataset',result.results)
+            } else {
+              return {error: `No fetch datasets found for  ${searchQuery}`}
+            }
+          })
+          .catch((error) => {
+            return { error: `SODA:FetchDataset API error: ${error}` }
+          })
+          
+      }
+    notes: in progress
+  - name: 'soda:SearchForDatasets'
+    signature: >-
+      soda:DatasetSearchResults (context data :UserString) -> data
+      soda:DatasetSearchResults
+    kind: 'nodejs:8'
+    code: |-
+      const request = require('request-promise-native')
+      const eba = require('eba')
+
+      module.exports.main = function (params) {
+        let h = new eba.Params(params)
+        let searchQuery = h.get(":UserString")
+        let tuning = encodeURIComponent("30<60%")
+        let options = {
+          uri: `http://api.us.socrata.com/api/catalog/v1?min_should_match=${tuning}&q=${searchQuery}&limit=5`,
+          headers: {
+              'User-Agent': 'Request-Promise',
+              'Accept' : 'application/json',
+          },
+          json: true // Automatically parses the JSON string in the response
+        };
+
+        return request(options)
+          .then((result) => {
+           // return {error: `Debugging result ${JSON.stringify(result,null,2)}`}
+            // return {error: `Debugging result ${result.data.organizationByName}`}
+            if ( result.results.length > 0 ) {
+              return new eba.Result().setData('soda:DatasetSearchResults',result.results)
             } else {
               return {error: `No datasets found for  ${searchQuery}`}
             }
@@ -124,7 +174,7 @@ actions:
           })
           
       }
-    notes: in progress
+    notes: works
   - name: 'wps:OrganizationByName'
     signature: 'wps:Organization (context data :UserString) -> data wps:Organization'
     kind: 'nodejs:8'
@@ -351,6 +401,10 @@ actions:
           
       }
     notes: works
+rules:
+  - name: ''
+    signature: 'soda:Information -> soda:DatasetSearchResults'
+    notes: ''
 endpoints:
   - name: '@render'
     kind: 'nodejs:8'
@@ -400,6 +454,53 @@ endpoints:
       }
     notes: ''
 statics:
+  - name: soda/datasets.jsx
+    mime: text/jsx
+    text: |-
+      soda_DatasetSearchResultsData = ({data}) => {
+        return (
+          <div className="wmt-products">
+            { data.map((item) =>
+              React.createElement(
+                soda_DatasetSearchResultData,
+                {data:item})) }
+          </div>)
+      }
+      // the datasets seem to be located at <host>/resource/<datasetid>.json
+      soda_DatasetSearchResultData = ({data}) => {
+        const item = data
+        return (
+          <div key={item.docId} className="wmt-product">
+            <div className="wmt-product-info">
+           
+              <div className="wmt-product-info-name">
+                <p><strong>{item.resource.name}</strong></p>
+                <p>{React.createElement(soda_link,{linky:item.permalink})}</p>
+               
+              </div>
+            </div>
+            <div className="wmt-product-info-description">
+              <div dangerouslySetInnerHTML={{__html:soda_decodeHTMLEntities(item.resource.description
+      )}}/>
+            </div>
+          </div>)
+      }
+
+      soda_link = ({linky}) => {
+        const link = linky
+        return (<a href={'"'+link+'"'} target='_blank'>{link}</a>)
+      }
+
+      soda_decodeHTMLEntities = (encoded) => {
+        if (encoded) {
+          var elem = document.createElement('textarea')
+          elem.innerHTML = encoded.replace(/[\uFFFD]/g,' ')
+          return elem.value
+        }
+        else return ""
+      }
+    notes: ''
+    frontend: true
   - name: wps/instance.jsx
     mime: text/jsx
     text: |-
