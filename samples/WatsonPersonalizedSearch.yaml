@@ -33,6 +33,7 @@ secrets:
   - name: apiKey
     notes: 'Get your API key at https://developer.walmartlabs.com/'
 concepts:
+  - name: 'wps:InstanceId'
   - name: 'soda:DatasetSearchResultId'
   - name: 'soda:DatasetSearchResultName'
   - name: 'soda:Dataset'
@@ -84,6 +85,9 @@ concepts:
     ontology:
       subClassOf: ':Showable'
       isSpellAs: instance
+    attributes:
+      'wps:InstanceId': id
+      'wps:InstanceName': instanceName
   - name: ':UserQuery'
   - name: ':Relation'
   - name: 'wps:SearchQuery'
@@ -97,7 +101,7 @@ concepts:
   - name: ':GUID'
   - name: ':UserString'
   - name: ':Showable'
-patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](:Joke)' annotates the :Joke concept appropriately\n\t 'show me the [weather](:Weather)' annotates the :Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](:ZIPCode)' provides a zip code annotation.\n\t \n\t - find [datasets](soda:Datasets) for [searchquery](soda:SearchQuery)\n\n-->\n- get [dataset](soda:Dataset) for [datasetname](soda:DatasetSearchResultName)\n- show [information](soda:Information) for [datasetquery](soda:SearchQuery)\n- show [datasets](soda:DatasetSearchResults) for [datasetquery](soda:SearchQuery)\n- show [organization](wps:Organization)  [named](wps:OrganizationName)\n- use [instanceName](wps:InstanceName)\n- [search](:ActionShow) [for](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [instances](wps:Instances) for [organization](wps:Organization) id\n- [show me](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [organization](wps:Organization) for  id"
+patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](:Joke)' annotates the :Joke concept appropriately\n\t 'show me the [weather](:Weather)' annotates the :Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](:ZIPCode)' provides a zip code annotation.\n\t \n\t - find [datasets](soda:Datasets) for [searchquery](soda:SearchQuery)\n\n-->\n- get [dataset](soda:Dataset) for [datasetname](soda:DatasetSearchResultName)\n- show [information](soda:Information) for [datasetquery](soda:SearchQuery)\n- show [datasets](soda:DatasetSearchResults) for [datasetquery](soda:SearchQuery)\n- show [organization](wps:Organization)  [named](wps:OrganizationName)\n- use [instanceName](wps:InstanceName)\n- [search](:ActionShow) [for](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [instances](wps:Instances) for [organization](wps:OrganizationName)\n- show [instance](wps:Instance) [named](wps:InstanceName)\n- [show me](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [organization](wps:Organization) for  id"
 actions:
   - name: 'soda:FetchDataset'
     signature: >-
@@ -176,7 +180,9 @@ actions:
       }
     notes: works
   - name: 'wps:OrganizationByName'
-    signature: 'wps:Organization (context data :UserString) -> data wps:Organization'
+    signature: >-
+      wps:Organization (context wps:OrganizationName (data :UserString)) -> data
+      wps:Organization
     kind: 'nodejs:8'
     code: |-
       const request = require('request-promise-native')
@@ -194,7 +200,7 @@ actions:
               'Authorization':`Basic ${params.secrets.wpskey}`,
               'Method':'POST'
           },
-          body : {"query":`{ organizationByName (name: \"${orgname}\") {  organizationName   instances { instanceName  }  }}`},
+          body : {"query":`{ organizationByName (name: \"${orgname}\") {  organizationName  id instances { instanceName  }  }}`},
           json: true // Automatically parses the JSON string in the response
         };
 
@@ -215,7 +221,9 @@ actions:
       }
     notes: works with graphql
   - name: 'wps:InstanceByInstanceName'
-    signature: 'wps:Instance (wps:InstanceName (data :UserString)) -> data wps:Instance'
+    signature: >-
+      wps:Instance (context wps:InstanceName (data :UserString)) -> data
+      wps:Instance
     kind: 'nodejs:8'
     code: |-
       const request = require('request-promise-native')
@@ -224,10 +232,10 @@ actions:
 
       module.exports.main = function (params) {
         let h = new eba.Params(params)
-        let org = h.get("wps:Organization")
+        let name = h.get(":UserString")
 
         let options = {
-          uri: `https://searchinsights.ibmmarketingcloud.com/service/v1/organizations/${org.id}`,
+          uri: `https://searchinsights.ibmmarketingcloud.com/service/v1/instances/${name}`,
          
           headers: {
               'User-Agent': 'Request-Promise',
@@ -243,15 +251,15 @@ actions:
             if (result.status == 200 && result.organizations.length > 0 && result.organizations[0].instances.length > 0) {
               return new eba.Result().setData('wps:Instance',result.organizations[0].instances)
             } else {
-              return {error: `No instances found for org id ${orgid}`}
+              return {error: `No instances found for name ${name}`}
             }
           })
           .catch((error) => {
-            return { error: `WPS:InstancesByOrgId API error: ${error}` }
+            return { error: `WPS:InstancesByInstanceName API error: ${error}` }
           })
           
       }
-    notes: broken
+    notes: neeeds api
   - name: 'wps:InstancesForOrg'
     signature: 'wps:Instances (context data wps:Organization) -> data wps:Instances'
     kind: 'nodejs:8'
@@ -263,6 +271,7 @@ actions:
         let h = new eba.Params(params)
         let org = h.get("wps:Organization")
 
+        let output = JSON.stringify(org);
         let options = {
           uri: `https://searchinsights.ibmmarketingcloud.com/service/v1/organizations/${org.id}`,
          
@@ -284,48 +293,13 @@ actions:
             }
           })
           .catch((error) => {
-            return { error: `WPS:InstancesByOrgId API error: ${error}` }
+            return { error: `WPS:InstancesForOrg API error: ${error} + ${output}` }
           })
           
       }
-    notes: does not work
-  - name: 'wps:InstancesByOrgId'
-    signature: 'wps:Instances (data :GUID) -> data wps:Instances'
-    kind: 'nodejs:8'
-    code: |-
-      const request = require('request-promise-native')
-      const eba = require('eba')
-
-      module.exports.main = function (params) {
-        let h = new eba.Params(params)
-        let orgid = h.get(":GUID")
-
-        let options = {
-          uri: `https://searchinsights.ibmmarketingcloud.com/service/v1/organizations/${orgid}`,
-         
-          headers: {
-              'User-Agent': 'Request-Promise',
-              'Accept' : 'application/json',
-              'Authorization':`Basic ${params.secrets.wpskey}`
-          },
-          json: true // Automatically parses the JSON string in the response
-        };
-
-        return request(options)
-          .then((result) => {
-            // return {error: `Debugging result ${JSON.stringify(result,null,2)}`}
-            if (result.status == 200 && result.organizations.length > 0 && result.organizations[0].instances.length > 0) {
-              return new eba.Result().setData('wps:Instances',result.organizations[0].instances)
-            } else {
-              return {error: `No instances found for org id ${orgid}`}
-            }
-          })
-          .catch((error) => {
-            return { error: `WPS:InstancesByOrgId API error: ${error}` }
-          })
-          
-      }
-    notes: works
+    notes: >-
+      works "show me instances for this org " now works, had to make sure
+      organization had an id in it returned by my graphql query.
   - name: 'wps:Search'
     signature: >-
       wps:SearchDocs (optional wps:SearchQuery (data :UserString)) -> data
@@ -402,6 +376,9 @@ actions:
       }
     notes: works
 rules:
+  - name: ''
+    signature: 'wps:OrganizationName -> wps:Organization (wps:OrganizationName)'
+    notes: ''
   - name: ''
     signature: 'soda:Information -> soda:DatasetSearchResults'
     notes: ''
