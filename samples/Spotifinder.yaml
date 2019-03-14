@@ -15,7 +15,7 @@ concepts:
       isSpellAs: all
   - name: 'spot:Categories'
     ontology:
-      isSpellAs: categories
+      isSpellAs: categories|*
       subClassOf: ':Showable'
   - name: ':UserString'
   - name: 'spot:SearchQuery'
@@ -47,12 +47,14 @@ actions:
           json: true
         }
               
-        progress += " Status: Preparing request to " + params.settings["spotAuthUrl"]
-        progress += Buffer.from(`${params.secrets.spotClientId}:${params.secrets.spotClientSecret}`).toString('base64') + ` ${params.secrets.spotClientId}:${params.secrets.spotClientSecret}` 
+        //progress += " Status: Preparing request to " + params.settings["spotAuthUrl"]
+       // progress += Buffer.from(`${params.secrets.spotClientId}:${params.secrets.spotClientSecret}`).toString('base64') + ` ${params.secrets.spotClientId}:${params.secrets.spotClientSecret}` 
                 
-        return request.post(options)
-          .then(function(body) {
-            var access_token = body.access_token
+       // return request.post(options)
+       //   .then(function(body) {
+           // var access_token = body.access_token
+
+            access_token= params.storage["token"]
             progress += " Access Token" + access_token
             return request
               .get({
@@ -67,7 +69,7 @@ actions:
               }
             )
             
-          })  
+        //  })  
         .catch(function (error) {
           return { error: `API error: ${error}  Progress: ${progress}` }
         })
@@ -111,6 +113,38 @@ actions:
           })
           
       }
+endpoints:
+  - name: '@start'
+    kind: 'nodejs:10'
+    code: |
+      const eba = require('eba');
+      const request = require("request-promise-native")
+
+      async function main(params) {
+        var options = {
+          uri: params.settings["spotAuthUrl"],
+          form: "grant_type=client_credentials",
+          headers: {
+            "Authorization": "Basic " + Buffer.from(`${params.secrets.spotClientId}:${params.secrets.spotClientSecret}`).toString('base64')
+          },
+          json: true
+        }
+              
+        let progress = " Status: Preparing request to " + params.settings["spotAuthUrl"]
+        progress += Buffer.from(`${params.secrets.spotClientId}:${params.secrets.spotClientSecret}`).toString('base64') + ` ${params.secrets.spotClientId}:${params.secrets.spotClientSecret}` 
+                
+        return request.post(options)
+          .then(function(body) {
+            var access_token = body.access_token
+            progress += " Access Token: " + access_token
+            return new eba.Result().store('token', access_token);
+          }
+        ).catch(function (error) {
+          return { error: `API error: ${error}  Progress: ${progress}` }
+        })
+      };
+
+      module.exports = {main}
 statics:
   - name: spot/category.css
     mime: text/css
