@@ -9,12 +9,38 @@ secrets:
   - name: spotClientSecret
   - name: spotClientId
 concepts:
+  - name: ':WithName'
+  - name: ':Filter'
+  - name: 'spot:CategoryId'
+  - name: 'spot:Category'
+    attributes:
+      'spot:CategoryId': id
+      'spot:CategoryName': name
+  - name: 'spot:CategoryName'
+    ontology:
+      subClassOf: ':UserString'
+  - name: 'spot:Playlists'
+    ontology:
+      isListOf: 'spot:Playlist'
+      subClassOf: ':Showable'
+      isSpellAs: playlists|*
+  - name: 'spot:Country'
+    ontology:
+      isSpellAs: country
+  - name: 'spot:Playlist'
+    ontology:
+      isSpellAs: playlist
+      subClassOf: ':Showable'
+    attributes:
+      'spot:PlaylistName': name
+  - name: 'spot:PlaylistName'
   - name: ':Showable'
   - name: ':All'
     ontology:
       isSpellAs: all
   - name: 'spot:Categories'
     ontology:
+      isListOf: 'spot:Category'
       isSpellAs: categories|*
       subClassOf: ':Showable'
   - name: ':UserString'
@@ -23,8 +49,47 @@ concepts:
     ontology:
       subClassOf: ':Showable'
   - name: ':ActionShow'
-patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n- show me [categories](spot:Categories)\n- [search](spot:SearchDocs)  [for](spot:SearchQuery)"
+patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n- show me [playlists](spot:Playlists) for category\n- show me [categories](spot:Categories)\n- [search](spot:SearchDocs)  [for](spot:SearchQuery)\n"
 actions:
+  - name: 'spot:GetPlaylists'
+    signature: >-
+      spot:Playlists (context spot:Category, optional spot:Category (data
+      :UserString)) -> data spot:Playlists
+    kind: 'nodejs:10'
+    code: |-
+      const eba = require("eba")
+      const request = require("request-promise-native")
+            
+      async function main(params) {
+        let p = new eba.Params(params)
+        let category = p.get(":UserString").toLowerCase()
+      // let country = p.get("spot:Country")
+        
+        let pathListview = `https://api.spotify.com/v1/browse/categories/${category}/playlists`
+              
+        let progress = "Status: Reached query"
+        
+        let access_token= params.storage["token"]
+        progress += " Access Token: " + access_token
+        progress += " Category:" + JSON.stringify(category)
+        progress += "Path: " + pathListview
+        return request
+          .get({
+            uri:  pathListview,
+            headers: {
+              "Authorization": "Bearer " + access_token
+            }
+          })
+          .then(JSON.parse)
+          .then(function(results) {
+            return new eba.Result().setData("spot:Playlists", results.playlists.items)
+          }
+        )
+        .catch(function (error) {
+          return { error: `API error: ${error}  Progress: ${progress}` }
+        })
+      }
+      module.exports = {main}
   - name: 'spot:GetCategories'
     signature: 'spot:Categories (optional :All) -> data spot:Categories'
     kind: 'nodejs:10'
@@ -36,40 +101,22 @@ actions:
               
         let pathListview = "https://api.spotify.com/v1/browse/categories"
               
-        let progress = " Status: Reached sfquery"
+        let progress = "Status: Reached query"
         
-        var options = {
-          uri: params.settings["spotAuthUrl"],
-          form: "grant_type=client_credentials",
-          headers: {
-            "Authorization": "Basic " + Buffer.from(`${params.secrets.spotClientId}:${params.secrets.spotClientSecret}`).toString('base64')
-          },
-          json: true
-        }
-              
-        //progress += " Status: Preparing request to " + params.settings["spotAuthUrl"]
-       // progress += Buffer.from(`${params.secrets.spotClientId}:${params.secrets.spotClientSecret}`).toString('base64') + ` ${params.secrets.spotClientId}:${params.secrets.spotClientSecret}` 
-                
-       // return request.post(options)
-       //   .then(function(body) {
-           // var access_token = body.access_token
-
-            access_token= params.storage["token"]
-            progress += " Access Token" + access_token
-            return request
-              .get({
-                uri:  pathListview,
-                headers: {
-                  "Authorization": "Bearer " + access_token
-                }
-              })
-              .then(JSON.parse)
-              .then(function(results) {
-                return new eba.Result().setData("spot:Categories", results.categories.items)
-              }
-            )
-            
-        //  })  
+        let access_token= params.storage["token"]
+        progress += " Access Token" + access_token
+        return request
+          .get({
+            uri:  pathListview,
+            headers: {
+              "Authorization": "Bearer " + access_token
+            }
+          })
+          .then(JSON.parse)
+          .then(function(results) {
+            return new eba.Result().setData("spot:Categories", results.categories.items)
+          }
+        )
         .catch(function (error) {
           return { error: `API error: ${error}  Progress: ${progress}` }
         })
@@ -146,6 +193,47 @@ endpoints:
 
       module.exports = {main}
 statics:
+  - name: spot/playlists.jsx
+    mime: text/jsx
+    text: |
+      spot_PlaylistsData = ({data}) => {
+        return (
+          <div className="wmt-products">
+            { data.map((item) =>
+              React.createElement(
+                spot_PlaylistData,
+                {data:item})) }
+          </div>)
+      }
+      // the datasets seem to be located at <host>/resource/<datasetid>.json
+      spot_PlaylistData = ({data}) => {
+        const item = data
+        console.log(JSON.stringify(item));
+        return (
+          <div key={item.id} className="wmt-product">
+            <div className="wmt-product-info">
+              <div className="wmt-product-info-name">
+                <p><strong>{item.name}</strong> {item.tracks.total}</p> 
+                <img src={item.images[0].url}/>
+              </div> 
+            </div>
+          </div>)
+      }
+
+      spot_link = ({linky}) => {
+        const link = linky
+        return (<a href={'"'+link+'"'} target='_blank'>{link}</a>)
+      }
+
+      spot_decodeHTMLEntities = (encoded) => {
+        if (encoded) {
+          var elem = document.createElement('textarea')
+          elem.innerHTML = encoded.replace(/[\uFFFD]/g,' ')
+          return elem.value
+        }
+        else return ""
+      }
+    frontend: true
   - name: spot/category.css
     mime: text/css
     text: |-
@@ -199,7 +287,7 @@ statics:
             <div className="wmt-product-info">
               <div className="wmt-product-info-name">
                 <p><strong>{item.name}</strong></p> 
-                <p>{React.createElement(spot_link,{linky:item.href})}</p>
+                <p>{true||React.createElement(spot_link,{linky:item.href})}</p>
                 <img src={item.icons[0].url}/>
 
               </div> 
@@ -207,6 +295,10 @@ statics:
           </div>)
       }
 
+      spot_cat_click = (name)=> {
+         return 'bridge.trigger("ask","show me playlists for "'+name+'")';
+      }
+         
       spot_link = ({linky}) => {
         const link = linky
         return (<a href={'"'+link+'"'} target='_blank'>{link}</a>)
