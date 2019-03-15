@@ -208,6 +208,33 @@ statics:
               }
           </div>)
       }
+
+      spot_PlaylistsContent = ({data}) => {
+        return (
+          <div className="wmt-products">
+            { 
+                data.map((item) =>
+                  React.createElement(
+                    spot_PlaylistContent,
+                    {data:item}))
+              }
+          </div>)
+      }
+
+      // the datasets seem to be located at <host>/resource/<datasetid>.json
+      spot_PlaylistContent = ({data}) => {
+        const item = data
+        console.log(JSON.stringify(item));
+        return (
+          <div key={item.id} className="wmt-product" style={{float:'left'}}>
+            <div className="wmt-product-info">
+              <div className="wmt-product-info-name">
+                <p><strong>{item.name}</strong> {item.tracks.total}</p> 
+                <img src={item.images[0].url}/>
+              </div> 
+            </div>
+          </div>)
+      }
       // the datasets seem to be located at <host>/resource/<datasetid>.json
       spot_PlaylistData = ({data}) => {
         const item = data
@@ -298,6 +325,32 @@ statics:
           </div>)
       }
 
+
+      spot_CategoriesContent = ({data}) => {
+        return (
+          <div className="wmt-products">
+            { data.map((item) =>
+              React.createElement(
+                spot_CategoryContent,
+                {data:item})) }
+          </div>)
+      }
+      // the datasets seem to be located at <host>/resource/<datasetid>.json
+      spot_CategoryContent = ({data}) => {
+        const item = data
+        console.log(JSON.stringify(item));
+        return (
+          <div key={item.id} className="wmt-product"  onClick={function() {bridge.trigger("ask","show me playlists for category \"" + item.name+"\"")}} style={{float:'left'}}>
+            <div className="wmt-product-info">
+              <div className="wmt-product-info-name">
+                <p><strong>{item.name}</strong></p> 
+                <p>{true||React.createElement(spot_link,{linky:item.href})}</p>
+                <img src={item.icons[0].url}/>
+
+              </div> 
+            </div>
+          </div>)
+      }
       spot_cat_click = (name)=> {
          return 'bridge.trigger("ask","show me playlists for "'+name+'")';
       }
