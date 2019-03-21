@@ -14,10 +14,22 @@ secrets:
   - name: spotClientSecret
   - name: spotClientId
 concepts:
+  - name: 'spot:Artists'
+    ontology:
+      isSpellAs: artists
+      isListOf: 'spot:Artists'
+  - name: 'spot:Artist'
+    ontology:
+      isSpellAs: artist
+      subClassOf: 'spot:AssetType'
+  - name: 'spot:Tracks'
+    ontology:
+      isListOf: 'spot:Track'
+  - name: 'spot:AssetType'
   - name: ':Sho'
   - name: 'spot:SearchResults'
     ontology:
-      isSpellAs: results
+      isSpellAs: search results
       subClassOf: ':Showable'
   - name: ':UserText'
   - name: ':FreeText'
@@ -25,6 +37,8 @@ concepts:
   - name: ':FreeString'
   - name: 'spot:Track'
   - name: 'spot:Album'
+    ontology:
+      subClassOf: 'spot:AssetType'
   - name: 'spot:Albums'
     ontology:
       isListOf: 'spot:Album'
@@ -33,7 +47,7 @@ concepts:
   - name: 'spot:CategoryId'
   - name: 'spot:Category'
     ontology:
-      isSpellAs: category
+      isSpellAs: ' '
     attributes:
       'spot:CategoryId': id
       'spot:CategoryName': name
@@ -69,7 +83,7 @@ concepts:
     ontology:
       subClassOf: ':UserString'
   - name: ':ActionShow'
-patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n- what [albums](spot:Album) does the track “Someday” appear on?\n- show me [playlists](spot:Playlists) for \"party\"\n- show me [categories](spot:Categories)\n- show [me](spot:SearchResults) (spot:SearchQuery)\n- find [me](spot:SearchResults) (spot:SearchQuery)\n- [dig up](spot:SearchResults) (spot:SearchQuery)\n- [find](:ActionShow)\n- [search](:ActionShow)\n- [dig up](:ActionShow)\n\n"
+patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n- what [albums](spot:Album) does the track “Someday” appear on?\n- show me [playlists](spot:Playlists) for \"party\"\n- show me [categories](spot:Categories)\n- show [me](spot:SearchResults) [artists](spot:Artists) named (spot:SearchQuery) \n- [find me](spot:SearchResults) (spot:SearchQuery)\n- [dig up](spot:SearchResults) (spot:SearchQuery)\n- [search for](spot:SearchResults) query\n\n\n"
 actions:
   - name: 'spot:GetAlbums'
     signature: >-
@@ -112,8 +126,8 @@ actions:
       }
   - name: 'spot:GetPlaylists'
     signature: >-
-      spot:Playlists (context spot:Category, optional spot:Category (data
-      :UserString)) -> data spot:Playlists
+      spot:Playlists (:Relation (spot:Category (data :UserString))) -> data
+      spot:Playlists
     kind: 'nodejs:10'
     code: |-
       const eba = require("eba")
@@ -185,9 +199,7 @@ actions:
       module.exports = {main}
     notes: works
   - name: 'spot:SearchAction'
-    signature: >-
-      spot:SearchResults (optional :Relation (data :UserString)) -> data
-      spot:SearchResults
+    signature: 'spot:SearchResults (data :UserString) -> data spot:SearchResults'
     kind: 'nodejs:10'
     code: |+
       const eba = require("eba")
@@ -198,6 +210,8 @@ actions:
       module.exports.main = async (params) => {
         let p = new eba.Params(params)
         let searchquery = p.get(":UserString")
+
+
       // let country = p.get("spot:Country")
         
         let options = {
@@ -216,6 +230,7 @@ actions:
         return request(options)
           .then((result) => {
             let items = []
+            items.push({id:"searching for", "name": `searching for "${searchquery}" `,"type":"all"})
             if (result.artists) {
               items.push(...result.artists.items)
             }
@@ -237,6 +252,9 @@ actions:
       }
 
     notes: show me "search"
+rules:
+  - name: ''
+    signature: ':UserString -> spot:AssetType (:UserString)'
 endpoints:
   - name: '@start'
     kind: 'nodejs:10'
