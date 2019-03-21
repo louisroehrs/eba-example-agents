@@ -23,13 +23,12 @@ meta:
     - show instances for this organization    -- yes
   name: Watson Personalized Search Agent
   icon: >-
-    http://images5.fanpop.com/image/polls/868000/868791_1320146639104_full.jpg?v=1320146712
+    https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Emma_Watson_2013.jpg/440px-Emma_Watson_2013.jpg
   protected: true
 secrets:
   - name: instancesearchkey
     notes: Dillards_WSI_Instance in production
   - name: wpskey
-    notes: ''
   - name: apiKey
     notes: 'Get your API key at https://developer.walmartlabs.com/'
 concepts:
@@ -77,6 +76,7 @@ concepts:
       subClassOf: ':UserString'
   - name: 'wps:Instances'
     ontology:
+      isListOf: 'wps:Instance'
       subClassOf:
         - ':Showable'
         - ':Attribute'
@@ -101,7 +101,7 @@ concepts:
   - name: ':GUID'
   - name: ':UserString'
   - name: ':Showable'
-patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](:Joke)' annotates the :Joke concept appropriately\n\t 'show me the [weather](:Weather)' annotates the :Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](:ZIPCode)' provides a zip code annotation.\n\t \n\t - find [datasets](soda:Datasets) for [searchquery](soda:SearchQuery)\n\n-->\n- get [dataset](soda:Dataset) for [datasetname](soda:DatasetSearchResultName)\n- show [information](soda:Information) for [datasetquery](soda:SearchQuery)\n- show [datasets](soda:DatasetSearchResults) for [datasetquery](soda:SearchQuery)\n- show [organization](wps:Organization)  [named](wps:OrganizationName)\n- use [instanceName](wps:InstanceName)\n- [search](:ActionShow) [for](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [instances](wps:Instances) for [organization](wps:OrganizationName)\n- show [instance](wps:Instance) [named](wps:InstanceName)\n- [show me](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [organization](wps:Organization) for  id"
+patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](:Joke)' annotates the :Joke concept appropriately\n\t 'show me the [weather](:Weather)' annotates the :Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](:ZIPCode)' provides a zip code annotation.\n\t \n\t - find [datasets](soda:Datasets) for [searchquery](soda:SearchQuery)\n\n-->\n- get [dataset](soda:Dataset) for [datasetname](soda:DatasetSearchResultName)\n- show [information](soda:Information) for [datasetquery](soda:SearchQuery)\n- show [datasets](soda:DatasetSearchResults) for [datasetquery](soda:SearchQuery)\n- show [organization](wps:Organization)  [named](wps:OrganizationName)\n- use [instance](wps:InstanceName)\n- search (wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [instances](wps:Instances) for [organization](wps:OrganizationName)\n- show [instance](wps:Instance) [named](wps:InstanceName)\n- [show me](wps:SearchDocs) [searchquery](wps:SearchQuery)\n- show [organization](wps:Organization) for  id\n"
 actions:
   - name: 'soda:FetchDataset'
     signature: >-
@@ -330,7 +330,7 @@ actions:
             if (result.numFound >0 && result.searchResults.length>0) {
               return new eba.Result().setData('wps:SearchDocs',result.searchResults)
             } else {
-              return {error: `No search docs found ${result.numFound} ${result.searchResults.length}`}
+              return {error: `WPS:No search docs found ${result.numFound} ${result.searchResults.length}`}
             }
           })
           .catch((error) => {
@@ -378,10 +378,8 @@ actions:
 rules:
   - name: ''
     signature: 'wps:OrganizationName -> wps:Organization (wps:OrganizationName)'
-    notes: ''
   - name: ''
     signature: 'soda:Information -> soda:DatasetSearchResults'
-    notes: ''
 endpoints:
   - name: '@render'
     kind: 'nodejs:8'
@@ -429,7 +427,6 @@ endpoints:
           return {}
         }
       }
-    notes: ''
 statics:
   - name: soda/datasets.jsx
     mime: text/jsx
@@ -476,7 +473,6 @@ statics:
         }
         else return ""
       }
-    notes: ''
     frontend: true
   - name: wps/instance.jsx
     mime: text/jsx
@@ -506,7 +502,6 @@ statics:
             
           </div>)
       }
-    notes: ''
     frontend: true
   - name: wps/organization.jsx
     mime: text/jsx
@@ -544,7 +539,6 @@ statics:
           </div>)
       }
 
-    notes: ''
     frontend: true
   - name: wps/searchdocs.jsx
     mime: text/jsx
@@ -587,7 +581,6 @@ statics:
         }
         else return ""
       }
-    notes: ''
     frontend: true
   - name: wmt/product.css
     mime: text/css
