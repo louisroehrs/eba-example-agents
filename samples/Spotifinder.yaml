@@ -78,16 +78,18 @@ concepts:
       subClassOf: 'spot:AssetType'
   - name: 'spot:Album'
     ontology:
+      subClassOf:
+        - 'spot:AssetType'
+        - ':Showable'
       isSpellAs: album
-      subClassOf: 'spot:AssetType'
     attributes:
       'spot:ReleaseDate': release_date
       'spot:Artist': 'artists[0].name'
   - name: 'spot:Albums'
     ontology:
+      isSpellAs: albums|*
       isListOf: 'spot:Album'
       subClassOf: ':Showable'
-      isSpellAs: albums|*
   - name: ':WithName'
   - name: ':Filter'
     ontology:
@@ -231,7 +233,9 @@ actions:
            
             if (items.length > 0) {
               return new eba.Result().setData("spot:Assets", items)
-            } else return {error:`SPOT: GetAnything No results found for "${searchquery}"` } 
+            }
+
+            else return {error:`SPOT: GetAnything No results found for "${searchquery}"` } 
           }
         )
         .catch(function (error) {
@@ -286,12 +290,14 @@ actions:
                   items.push(...result.albums.items.filter(item => item.artists[0].name.toLowerCase() == searchquery.toLowerCase() ));
                 (timing == "spot:Latest") && items.push(result.albums.items.filter(item => item.artists[0].name.toLowerCase() == searchquery.toLowerCase() ).sort((itema,itemb) => 
                      new Date(itemb.release_date) - new Date(itema.release_date))[0]);
-                 (timing == "spot:First") && items.push(result.albums.items.filter(item => item.artists[0].name.toLowerCase() == searchquery.toLowerCase() ).sort((itema,itemb) => 
+                (timing == "spot:First") && items.push(result.albums.items.filter(item => item.artists[0].name.toLowerCase() == searchquery.toLowerCase() ).sort((itema,itemb) => 
                      new Date(itema.release_date) - new Date(itemb.release_date))[0]);
             }
         //   items.push({id:"spot:GetAlbumsByArtist", "name": `searching for "${searchquery}" `,"type":"all","timing":timing})
             if (items.length > 0) {
               return new eba.Result().setData("spot:Albums", items)
+             /* } else if (items.length == 1) {
+              return new eba.Result().setData("spot:Album", items[0]) */
             } else return {error:`SPOT: No results found for "${searchquery}"` } 
           }
         )
