@@ -4,9 +4,9 @@ meta:
   icon: 'https://www.ibm.com/watson/music/noteasy/images/image-00.png'
   description: |-
     - what albums does the track "Someday" appear on?
-    - show me playlists for category "party"
+    - show me playlists party
     - show me all categories
-    - show me "madonna"
+    - search for "madonna"
 settings:
   - name: spotAuthUrl
     value: 'https://accounts.spotify.com/api/token'
@@ -56,8 +56,12 @@ concepts:
     ontology:
       isSpellAs: album
       subClassOf: 'spot:AssetType'
+    attributes:
+      'spot:Artist': 'artists[0].name'
   - name: 'spot:Albums'
     ontology:
+      isListOf: 'spot:Album'
+      subClassOf: ':Showable'
       isSpellAs: albums|*
   - name: ':WithName'
   - name: ':Filter'
@@ -102,7 +106,7 @@ concepts:
     ontology:
       subClassOf: ':UserString'
   - name: ':ActionShow'
-patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n- what [albums](spot:Albums) does the track “Someday” appear on?\n- show me [playlists](spot:Playlists) for category Jazz\n- show me [categories](spot:Categories)\n- [find me](spot:SearchResults) (spot:SearchQuery)\n- [dig up](spot:SearchResults) (spot:SearchQuery)\n- find [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  called \"something\"\n- show me [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  for something\n- show me [tracks](spot:Tracks) for The Wall\n- show me [albums](spot:Albums) by Madonna\n- [search for](spot:SearchResults) query\n- show me the [track](spot:Track), the [artist](spot:Artist), and the [album](spot:Album) \n\n\n"
+patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n- what [albums](spot:Albums) does the track “Someday” appear on?\n- show me [playlists](spot:Playlists) for category Jazz\n- get [playlists](spot:Playlists) for \"Party\"\n- show me [categories](spot:Categories)\n- show me [albums](spot:Albums) by Madonna\n- [find me](spot:SearchResults) (spot:SearchQuery)\n- [dig up](spot:SearchResults) (spot:SearchQuery)\n- find [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  called \"something\"\n- show me [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  for something\n- show me [tracks](spot:Tracks) for Madonna\n- [search for](spot:SearchResults) query\n- show me the [track](spot:Track), the [artist](spot:Artist), and the [album](spot:Album) \n- [by](spot:Relation)\n- [for](spot:Relation)\n- [search](:ActionShow)\n\n\n"
 actions:
   - name: 'spot:GetAnything'
     signature: >-
@@ -110,80 +114,101 @@ actions:
       spot:Assets (optional :All, type, optional relational (data :FreeText)) ->
       data spot:Assets
     kind: 'nodejs:10'
-    code: |
+    code: |+
       const eba = require("eba")
       const request = require("request-promise-native")
-            
-      module.exports = async function main(params) {
+         
+      module.exports.main = async (params) => {
         let p = new eba.Params(params)
-        let type = p.get(":FreeString").toLowerCase()
+        let searchquery = p.get(":FreeText")
+        let type = p.getName('type')
+
       // let country = p.get("spot:Country")
         
-        let pathListview = `https://api.spotify.com/v1/browse/categories/${type}/playlists`
-              
-        let progress = "Status: Reached query"
-        
-        let access_token= params.storage["token"]
-        progress += " Access Token: " + access_token
-        progress += " Category:" + JSON.stringify(category)
-        progress += "Path: " + pathListview
-        return request
-          .get({
-            uri:  pathListview,
+        let options = {
+            uri:  `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchquery)}&type=${type}`,
             headers: {
-              "Authorization": "Bearer " + access_token
+              "Authorization": "Bearer " + params.storage["token"]
+            },
+            json: true 
+          }
+          
+        let progress = "Status: Reached query"
+        progress += " Access Token: " + options.headers.Authorization
+        progress += " Search:" + JSON.stringify(searchquery)
+        progress += "Path: " + options.uri
+        
+        return request(options)
+          .then((result) => {
+            let items = []
+            items.push({id:"spot:GetAnything", "name": `searching for "${searchquery}" `,"type":type})
+            if (result[type]) {
+              items.push(...result[type].items)
             }
-          })
-          .then(JSON.parse)
-          .then(function(results) {
-            return new eba.Result().setData("spot:Assets", results[type+"s"].items)
+           
+            if (items.length > 0) {
+              return new eba.Result().setData("spot:Assets", items)
+            } else return {error:`SPOT: GetAnything No results found for "${searchquery}"` } 
           }
         )
         .catch(function (error) {
-          return { error: `No playlists were found for "${p.get(":UserString")}"` }
-          //return { error: `API error: ${error}  Progress: ${progress}` }
+          //return { error: `No search results were found for "${p.get(":UserString")}"` }
+          return { error: `SPOT: GetAnything: API error: ${error}  Progress: ${progress}` }
         })
       };
-    notes: in progress. just rying to get the damn thing to trigger
+
+
+
+    notes: in progress. just trying to get the damn thing to trigger
     active: true
   - name: 'spot:GetAlbumsByArtist'
-    signature: 'spot:Albums (:Relation (data :FreeText)) -> data spot:Albums'
+    signature: 'spot:Albums (spot:Relation (data :FreeText)) -> data spot:Albums'
     kind: 'nodejs:10'
-    code: |
+    code: |+
       const eba = require("eba")
       const request = require("request-promise-native")
-            
-      module.exports = async function main(params) {
+         
+      module.exports.main = async (params) => {
         let p = new eba.Params(params)
-        let searchquery = p.get(":UserString").toLowerCase()
+        let searchquery = p.get(":FreeText")
+
+
       // let country = p.get("spot:Country")
         
-        let pathListview = `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchquery)}&type=album`
-
-        let progress = "Status: Reached query"
-        
-        let access_token= params.storage["token"]
-        progress += " Access Token: " + access_token
-        progress += " Category:" + JSON.stringify(category)
-        progress += "Path: " + pathListview
-        return request
-          .get({
-            uri:  pathListview,
+        let options = {
+            uri:  `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchquery)}&type=album`,
             headers: {
-              "Authorization": "Bearer " + access_token
+              "Authorization": "Bearer " + params.storage["token"]
+            },
+            json: true 
+          }
+          
+        let progress = "Status: Reached query"
+        progress += " Access Token: " + options.headers.Authorization
+        progress += " Search:" + JSON.stringify(searchquery)
+        progress += "Path: " + options.uri
+        
+        return request(options)
+          .then((result) => {
+            let items = []
+           // items.push({id:"spot:GetAlbumsByArtist", "name": `searching for "${searchquery}" `,"type":"all"})
+            if (result.albums) {
+                items.push(...result.albums.items.filter(item => item.artists[0].name.toLowerCase() == searchquery.toLowerCase() ))
             }
-          })
-          .then(JSON.parse)
-          .then(function(results) {
-            return new eba.Result().setData("spot:Albums", results.playlists.items)
+           
+            if (items.length > 0) {
+              return new eba.Result().setData("spot:Albums", items)
+            } else return {error:`SPOT: No results found for "${searchquery}"` } 
           }
         )
         .catch(function (error) {
-          return { error: `No albums were found for "${p.get(":UserString")}"` }
-          //return { error: `API error: ${error}  Progress: ${progress}` }
+          //return { error: `No search results were found for "${p.get(":UserString")}"` }
+          return { error: `SPOT: API error: ${error}  Progress: ${progress}` }
         })
-      }
-    notes: not yet
+      };
+
+
+    notes: 'not yet: wtf TypeError: require(...).main is not a function means?'
     active: true
   - name: 'spot:GetPlaylists'
     signature: 'spot:Playlists (:Relation (data :FreeText)) -> data spot:Playlists'
@@ -317,10 +342,13 @@ actions:
 rules:
   - name: 'spot:ArtistAssets'
     signature: 'spot:Artists -> spot:Assets (spot:Artist)'
+    active: false
   - name: 'spot:AlbumAssets'
     signature: 'spot:Albums -> spot:Assets (spot:Album)'
+    active: false
   - name: 'spot:TrackAssets'
     signature: 'spot:Tracks -> spot:Assets (spot:Track)'
+    active: false
 endpoints:
   - name: '@start'
     kind: 'nodejs:10'
@@ -354,6 +382,76 @@ endpoints:
 
       module.exports = {main}
 statics:
+  - name: spot/albums.jsx
+    mime: text/jsx
+    text: |
+      spot_AlbumsData = ({data}) => {
+        return (
+          <div className="wmt-products">
+            { 
+                data.map((item) =>
+                  React.createElement(
+                    spot_AlbumData,
+                    {data:item}))
+              }
+          </div>)
+      }
+
+      spot_AlbumsContent = ({data}) => {
+        return (
+          <div className="wmt-products">
+            { 
+                data.map((item) =>
+                  React.createElement(
+                    spot_AlbumContent,
+                    {data:item}))
+              }
+          </div>)
+      }
+
+      // the datasets seem to be located at <host>/resource/<datasetid>.json
+      spot_AlbumContent = ({data}) => {
+        const item = data
+        console.log(JSON.stringify(item));
+        return (
+          <div key={item.id} className="wmt-product" style={{float:'left'}}>
+            <div className="wmt-product-info">
+              <div className="wmt-product-info-name">
+                <p><strong>{item.name}</strong> <br/>{item.total_tracks} Tracks<br/>Released {item.release_date}</p> 
+                <img src={item.images[0].url}/>
+              </div> 
+            </div>
+          </div>)
+      }
+      // the datasets seem to be located at <host>/resource/<datasetid>.json
+      spot_AlbumData = ({data}) => {
+        const item = data
+        console.log(JSON.stringify(item));
+        return (
+          <div key={item.id} className="wmt-product">
+            <div className="wmt-product-info">
+              <div className="wmt-product-info-name">
+                <p><strong>{item.name}</strong> <br/>{item.total_tracks} Tracks<br/>Released {item.release_date}</p> 
+                <img src={item.images[0].url}/>
+              </div> 
+            </div>
+          </div>)
+      }
+
+      spot_link = ({linky}) => {
+        const link = linky
+        return (<a href={'"'+link+'"'} target='_blank'>{link}</a>)
+      }
+
+      spot_decodeHTMLEntities = (encoded) => {
+        if (encoded) {
+          var elem = document.createElement('textarea')
+          elem.innerHTML = encoded.replace(/[\uFFFD]/g,' ')
+          return elem.value
+        }
+        else return ""
+      }
+    frontend: true
   - name: spot/searchresults.jsx
     mime: text/jsx
     text: |-
