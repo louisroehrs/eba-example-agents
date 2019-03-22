@@ -44,6 +44,8 @@ concepts:
       isSpellAs: asset
       subClassOf: ':Showable'
   - name: 'spot:Relation'
+    ontology:
+      isSpellAs: by
   - name: 'spot:Assets'
     ontology:
       isSpellAs: assets|*
@@ -129,8 +131,66 @@ concepts:
     ontology:
       subClassOf: ':UserString'
   - name: ':ActionShow'
-patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n- what [albums](spot:Albums) does the track “Someday” appear on?\n- show me [playlists](spot:Playlists) for category Jazz\n- get [playlists](spot:Playlists) for \"Party\"\n- show me [categories](spot:Categories)\n- show me [albums](spot:Albums) by Madonna\n- [find me](spot:SearchResults) (spot:SearchQuery)\n- [dig up](spot:SearchResults) (spot:SearchQuery)\n- find [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  called \"something\"\n- show me [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  for something\n- show me [tracks](spot:Tracks) for Madonna\n- [search for](spot:SearchResults) query\n- show me the [track](spot:Track), the [artist](spot:Artist), and the [album](spot:Album) \n- [by](spot:Relation)\n- [for](spot:Relation)\n- [search](:ActionShow)\n- show me the [latest album](spot:LatestAlbum) by Madonna\n- show me the [first album](spot:FirstAlbum) by REM\n\n\n"
+patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n- what [albums](spot:Albums) does the track “Someday” appear on?\n- show me [playlists](spot:Playlists) for category Jazz\n- get [playlists](spot:Playlists) for \"Party\"\n- show me [categories](spot:Categories)\n- show me [albums](spot:Albums) by Madonna\n- [find me](spot:SearchResults) (spot:SearchQuery)\n- [dig up](spot:SearchResults) (spot:SearchQuery)\n- find [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  called \"something\"\n- show me [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  for something\n- show me [tracks](spot:Tracks) for Madonna\n- show me track for this album\n- [search for](spot:SearchResults) query\n- show me the [track](spot:Track), the [artist](spot:Artist), and the [album](spot:Album) \n- [by](spot:Relation)\n- [for](spot:Relation)\n- [search](:ActionShow)\n- show me the [latest album](spot:LatestAlbum) by Madonna\n- show me the [first album](spot:FirstAlbum) by REM\n\n\n"
 actions:
+  - name: 'spot:TrackForAlbum'
+    signature: 'spot:Tracks (spot:Relation (context spot:Albums)) -> data spot:Tracks'
+    kind: 'nodejs:10'
+    code: |+
+      const eba = require("eba")
+      const request = require("request-promise-native")
+         
+      module.exports.main = async (params) => {
+        let p = new eba.Params(params)
+        let searchquery = p.get(":FreeText")
+        let timing = p.getName("timing")
+
+
+      // let country = p.get("spot:Country")
+        
+        let options = {
+            uri:  `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchquery)}&type=album`,
+            headers: {
+              "Authorization": "Bearer " + params.storage["token"]
+            },
+            json: true 
+          }
+          
+        let progress = "Status: Reached query"
+        progress += "Timing " + timing
+        progress += " Access Token: " + options.headers.Authorization
+        progress += " Search:" + JSON.stringify(searchquery)
+        progress += "Path: " + options.uri
+          //  return { error: `SPOT:  Progress: ${progress}` }
+
+        return request(options)
+          .then((result) => {
+            let items = []
+           // items.push({id:"spot:GetAlbumsByArtist", "name": `searching for "${searchquery}" `,"type":"all"})
+            if (result.albums) {
+              
+                (timing == null) &&
+                  items.push(...result.albums.items.filter(item => item.artists[0].name.toLowerCase() == searchquery.toLowerCase() ));
+                (timing == "spot:Latest") && items.push(result.albums.items.filter(item => item.artists[0].name.toLowerCase() == searchquery.toLowerCase() ).sort((itema,itemb) => 
+                     new Date(itemb.release_date) - new Date(itema.release_date))[0]);
+                 (timing == "spot:First") && items.push(result.albums.items.filter(item => item.artists[0].name.toLowerCase() == searchquery.toLowerCase() ).sort((itema,itemb) => 
+                     new Date(itema.release_date) - new Date(itemb.release_date))[0]);
+            }
+        //   items.push({id:"spot:GetAlbumsByArtist", "name": `searching for "${searchquery}" `,"type":"all","timing":timing})
+            if (items.length > 0) {
+              return new eba.Result().setData("spot:Albums", items)
+            } else return {error:`SPOT: No results found for "${searchquery}"` } 
+          }
+        )
+        .catch(function (error) {
+          //return { error: `No search results were found for "${p.get(":UserString")}"` }
+          return { error: `SPOT: API error: ${error}  Progress: ${progress}` }
+        })
+      };
+
+
+
+    notes: 'TODO: Fix the code.'
   - name: 'spot:GetAnything'
     signature: >-
       type subClassOf spot:AssetType, relational subClassOf spot:Relation =>
@@ -231,7 +291,7 @@ actions:
             }
         //   items.push({id:"spot:GetAlbumsByArtist", "name": `searching for "${searchquery}" `,"type":"all","timing":timing})
             if (items.length > 0) {
-              return new eba.Result().setData("spot:Albums", items).setMeta("louis",{id:"spot:GetAlbumsByArtist", "name": `searching for "${searchquery}" `,"type":"all","timing":timing})
+              return new eba.Result().setData("spot:Albums", items)
             } else return {error:`SPOT: No results found for "${searchquery}"` } 
           }
         )
@@ -242,7 +302,11 @@ actions:
       };
 
 
-    notes: 'not yet: wtf TypeError: require(...).main is not a function means?'
+    notes: |-
+      works
+      show me albums by someone
+      show me latest album by someone
+      show me the first album by someone
     active: true
   - name: 'spot:GetPlaylists'
     signature: 'spot:Playlists (:Relation (data :FreeText)) -> data spot:Playlists'
