@@ -14,19 +14,30 @@ secrets:
   - name: spotClientSecret
   - name: spotClientId
 concepts:
+  - name: 'spot:Video'
+  - name: 'spot:Image'
+  - name: 'spot:ArtistName'
+  - name: 'spot:Asset'
+    ontology:
+      isSpellAs: asset
+      subClassOf: ':Showable'
+  - name: 'spot:Relation'
+  - name: 'spot:Assets'
+    ontology:
+      isSpellAs: assets|*
+      isListOf: 'spot:Asset'
+      subClassOf: ':Showable'
   - name: 'spot:Artists'
     ontology:
-      isSpellAs: artists
-      isListOf: 'spot:Artists'
+      isSpellAs: artists|*
   - name: 'spot:Artist'
     ontology:
       isSpellAs: artist
       subClassOf: 'spot:AssetType'
   - name: 'spot:Tracks'
     ontology:
-      isListOf: 'spot:Track'
+      isSpellAs: tracks|*
   - name: 'spot:AssetType'
-  - name: ':Sho'
   - name: 'spot:SearchResults'
     ontology:
       isSpellAs: search results
@@ -34,20 +45,28 @@ concepts:
   - name: ':UserText'
   - name: ':FreeText'
   - name: ':Relation'
-  - name: ':FreeString'
+    ontology:
+      isSpellAs: for
+      subClassOf: 'spot:Relation'
   - name: 'spot:Track'
+    ontology:
+      isSpellAs: track
+      subClassOf: 'spot:AssetType'
   - name: 'spot:Album'
     ontology:
+      isSpellAs: album
       subClassOf: 'spot:AssetType'
   - name: 'spot:Albums'
     ontology:
-      isListOf: 'spot:Album'
+      isSpellAs: albums|*
   - name: ':WithName'
   - name: ':Filter'
+    ontology:
+      subClassOf: 'spot:Relation'
   - name: 'spot:CategoryId'
   - name: 'spot:Category'
     ontology:
-      isSpellAs: ' '
+      isSpellAs: ' category'
     attributes:
       'spot:CategoryId': id
       'spot:CategoryName': name
@@ -83,12 +102,13 @@ concepts:
     ontology:
       subClassOf: ':UserString'
   - name: ':ActionShow'
-patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n- what [albums](spot:Album) does the track “Someday” appear on?\n- show me [playlists](spot:Playlists) for \"party\"\n- show me [categories](spot:Categories)\n- show [me](spot:SearchResults) [artists](spot:Artists) named (spot:SearchQuery) \n- [find me](spot:SearchResults) (spot:SearchQuery)\n- [dig up](spot:SearchResults) (spot:SearchQuery)\n- [search for](spot:SearchResults) query\n\n\n"
+patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n- what [albums](spot:Albums) does the track “Someday” appear on?\n- show me [playlists](spot:Playlists) for category Jazz\n- show me [categories](spot:Categories)\n- [find me](spot:SearchResults) (spot:SearchQuery)\n- [dig up](spot:SearchResults) (spot:SearchQuery)\n- find [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  called \"something\"\n- show me [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  for something\n- show me [tracks](spot:Tracks) for The Wall\n- show me [albums](spot:Albums) by Madonna\n- [search for](spot:SearchResults) query\n- show me the [track](spot:Track), the [artist](spot:Artist), and the [album](spot:Album) \n\n\n"
 actions:
-  - name: 'spot:GetAlbums'
+  - name: 'spot:GetAnything'
     signature: >-
-      spot:Albums (context spot:Track, optional spot:Track (data :UserString))
-      -> data spot:Albums
+      type subClassOf spot:AssetType, relational subClassOf spot:Relation =>
+      spot:Assets (optional :All, type, optional relational (data :FreeText)) ->
+      data spot:Assets
     kind: 'nodejs:10'
     code: |
       const eba = require("eba")
@@ -96,10 +116,10 @@ actions:
             
       module.exports = async function main(params) {
         let p = new eba.Params(params)
-        let category = p.get(":UserString").toLowerCase()
+        let type = p.get(":FreeString").toLowerCase()
       // let country = p.get("spot:Country")
         
-        let pathListview = `https://api.spotify.com/v1/browse/categories/${category}/playlists`
+        let pathListview = `https://api.spotify.com/v1/browse/categories/${type}/playlists`
               
         let progress = "Status: Reached query"
         
@@ -116,18 +136,57 @@ actions:
           })
           .then(JSON.parse)
           .then(function(results) {
-            return new eba.Result().setData("spot:Playlists", results.playlists.items)
+            return new eba.Result().setData("spot:Assets", results[type+"s"].items)
           }
         )
         .catch(function (error) {
           return { error: `No playlists were found for "${p.get(":UserString")}"` }
           //return { error: `API error: ${error}  Progress: ${progress}` }
         })
+      };
+    notes: in progress. just rying to get the damn thing to trigger
+    active: true
+  - name: 'spot:GetAlbumsByArtist'
+    signature: 'spot:Albums (:Relation (data :FreeText)) -> data spot:Albums'
+    kind: 'nodejs:10'
+    code: |
+      const eba = require("eba")
+      const request = require("request-promise-native")
+            
+      module.exports = async function main(params) {
+        let p = new eba.Params(params)
+        let searchquery = p.get(":UserString").toLowerCase()
+      // let country = p.get("spot:Country")
+        
+        let pathListview = `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchquery)}&type=album`
+
+        let progress = "Status: Reached query"
+        
+        let access_token= params.storage["token"]
+        progress += " Access Token: " + access_token
+        progress += " Category:" + JSON.stringify(category)
+        progress += "Path: " + pathListview
+        return request
+          .get({
+            uri:  pathListview,
+            headers: {
+              "Authorization": "Bearer " + access_token
+            }
+          })
+          .then(JSON.parse)
+          .then(function(results) {
+            return new eba.Result().setData("spot:Albums", results.playlists.items)
+          }
+        )
+        .catch(function (error) {
+          return { error: `No albums were found for "${p.get(":UserString")}"` }
+          //return { error: `API error: ${error}  Progress: ${progress}` }
+        })
       }
+    notes: not yet
+    active: true
   - name: 'spot:GetPlaylists'
-    signature: >-
-      spot:Playlists (:Relation (spot:Category (data :UserString))) -> data
-      spot:Playlists
+    signature: 'spot:Playlists (:Relation (data :FreeText)) -> data spot:Playlists'
     kind: 'nodejs:10'
     code: |-
       const eba = require("eba")
@@ -135,7 +194,7 @@ actions:
             
       async function main(params) {
         let p = new eba.Params(params)
-        let category = p.get(":UserString").toLowerCase()
+        let category = p.get(":FreeText").toLowerCase()
       // let country = p.get("spot:Country")
         
         let pathListview = `https://api.spotify.com/v1/browse/categories/${category}/playlists`
@@ -165,6 +224,7 @@ actions:
       }
       module.exports = {main}
     notes: works
+    active: true
   - name: 'spot:GetCategories'
     signature: 'spot:Categories (optional :All) -> data spot:Categories'
     kind: 'nodejs:10'
@@ -198,6 +258,7 @@ actions:
       }
       module.exports = {main}
     notes: works
+    active: true
   - name: 'spot:SearchAction'
     signature: 'spot:SearchResults (data :UserString) -> data spot:SearchResults'
     kind: 'nodejs:10'
@@ -252,9 +313,14 @@ actions:
       }
 
     notes: show me "search"
+    active: true
 rules:
-  - name: ''
-    signature: ':UserString -> spot:AssetType (:UserString)'
+  - name: 'spot:ArtistAssets'
+    signature: 'spot:Artists -> spot:Assets (spot:Artist)'
+  - name: 'spot:AlbumAssets'
+    signature: 'spot:Albums -> spot:Assets (spot:Album)'
+  - name: 'spot:TrackAssets'
+    signature: 'spot:Tracks -> spot:Assets (spot:Track)'
 endpoints:
   - name: '@start'
     kind: 'nodejs:10'
