@@ -6,7 +6,10 @@ meta:
     - what albums does the track "Someday" appear on?
     - show me playlists party
     - show me all categories
-    - search for "madonna"
+    - search for "acoustic pop hits"
+    - make a playlist with these  -- coming soon
+    - more   -- coming soon
+    - show me the most popular tracks, etc.
 settings:
   - name: spotAuthUrl
     value: 'https://accounts.spotify.com/api/token'
@@ -395,8 +398,7 @@ actions:
       const eba = require("eba")
       const request = require("request-promise-native")
         
-        
-         
+
       module.exports.main = async (params) => {
         let p = new eba.Params(params)
         let searchquery = p.get(":UserString")
@@ -564,17 +566,30 @@ statics:
   - name: spot/searchresults.jsx
     mime: text/jsx
     text: |-
+      spotSearchDataDisplayTypes = (type) => {
+        return {"album":spot_AlbumData,
+                "track":spot_TrackData,
+                "artist":spot_SearchResultData
+        }[type]
+      }
+
       spot_SearchResultsData = ({data}) => {
         return (
           <div className="wmt-products">
-           { data.map((item) =>
-              React.createElement(
-                spot_SearchResultData,
-                {data:item})) }
+           { data.map((item) => 
+                 React.createElement(
+                  spotSearchDataDisplayTypes(item.type),
+                  {data:item}) 
+              ) 
+            }
           </div>
           )
       }
-
+      /*
+      React.createElement(
+                  spot_SearchDataDisplayTypes[item.type],
+                  {data:item}) 
+      */
       //React.createElement(
       //          spot_SearchResultData,
       //          {data:item})) }
@@ -589,7 +604,6 @@ statics:
                   {data:item})
               }*/
 
-      // the datasets seem to be located at <host>/resource/<datasetid>.json
       spot_SearchResultData = ({data}) => {
         const item = data;
         console.log("dd"+JSON.stringify(item));
@@ -605,23 +619,7 @@ statics:
       }
 
 
-      // the datasets seem to be located at <host>/resource/<datasetid>.json
-      /*
-      spot_AlbumData = ({data}) => {
-        const item = data
-        console.log(JSON.stringify(item));
-        return (
-          <div key={item.id} className="wmt-product"  >
-            <div className="wmt-product-info">
-              <div className="wmt-product-info-name">
-                <p><strong>{item.name}</strong> by {item.external_urls[0].name}</p> 
-                <p>{item.type}</p>
-              </div> 
-            </div>
-          </div>)
-      }
 
-      // the datasets seem to be located at <host>/resource/<datasetid>.json
       spot_ArtistData = ({data}) => {
         const item = data
         console.log(JSON.stringify(item));
@@ -635,8 +633,23 @@ statics:
             </div>
           </div>)
       }
-      */
-         
+
+
+
+      spot_TrackData = ({data}) => {
+        const item = data
+        console.log(JSON.stringify(item));
+        return (
+          <div key={item.id} className="wmt-product">
+            <div className="wmt-product-info">
+              <div className="wmt-product-info-name">
+                <p><strong>{item.name}</strong> <br/>by {item.artists[0].name}</p> 
+                <img src={item.album.images[0].url}/>
+              </div> 
+            </div>
+          </div>)
+      }
+
       spot_link = ({linky}) => {
         const link = linky
         return (<a href={'"'+link+'"'} target='_blank'>{link}</a>)
