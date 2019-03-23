@@ -394,8 +394,9 @@ actions:
   - name: 'spot:SearchAction'
     signature: 'spot:SearchResults (data :UserString) -> data spot:SearchResults'
     kind: 'nodejs:10'
-    code: |+
+    code: >+
       const eba = require("eba")
+
       const request = require("request-promise-native")
         
 
@@ -422,7 +423,8 @@ actions:
         return request(options)
           .then((result) => {
             let items = []
-            items.push({id:"searching for", "name": `searching for "${searchquery}" `,"type":"all"})
+      //      items.push({id:"searching for", "name": `searching for
+      "${searchquery}" `,"type":"all"})
             if (result.artists) {
               items.push(...result.artists.items)
             }
@@ -569,7 +571,7 @@ statics:
       spotSearchDataDisplayTypes = (type) => {
         return {"album":spot_AlbumData,
                 "track":spot_TrackData,
-                "artist":spot_SearchResultData
+                "artist":spot_ArtistData
         }[type]
       }
 
@@ -585,25 +587,8 @@ statics:
           </div>
           )
       }
-      /*
-      React.createElement(
-                  spot_SearchDataDisplayTypes[item.type],
-                  {data:item}) 
-      */
-      //React.createElement(
-      //          spot_SearchResultData,
-      //          {data:item})) }
-      /*if (item.type == "album"){
-                React.createElement(
-                  spot_AlbumData,
-                  {data:item})
-              }
-              if (item.type == "artist"){ 
-                React.createElement(
-                  spot_ArtistData,
-                  {data:item})
-              }*/
 
+      // spotSearchDataDisplayTypes(item.type),
       spot_SearchResultData = ({data}) => {
         const item = data;
         console.log("dd"+JSON.stringify(item));
