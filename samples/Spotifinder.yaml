@@ -17,6 +17,12 @@ secrets:
   - name: spotClientSecret
   - name: spotClientId
 concepts:
+  - name: 'spot:Unknown'
+    ontology:
+      subClassOf: 'spot:Tops'
+  - name: 'spot:LeastPopular'
+    ontology:
+      subClassOf: 'spot:Tops'
   - name: 'spot:PlayThis'
   - name: 'spot:TopTenAlbums'
   - name: 'spot:TopFiveAlbums'
@@ -156,7 +162,7 @@ concepts:
     ontology:
       subClassOf: ':UserString'
   - name: ':ActionShow'
-patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n- what [albums](spot:Albums) does the track “Someday” appear on?\n- show me [playlists](spot:Playlists) for category Jazz\n- get [playlists](spot:Playlists) for \"Party\"\n- show me [categories](spot:Categories)\n- show me [albums](spot:Albums) by Madonna\n- [find me](spot:SearchResults) (spot:SearchQuery)\n- [dig up](spot:SearchResults) (spot:SearchQuery)\n- find [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  called \"something\"\n- show me [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  for something\n- show me [tracks](spot:Tracks) for Madonna\n- show me track for this album\n- [search for](spot:SearchResults) the most popular \"rock\"\n- show me the [track](spot:Track), the [artist](spot:Artist), and the [album](spot:Album) \n- [by](spot:Relation)\n- [for](spot:Relation)\n- [search](:ActionShow)\n- [most popular](spot:MostPopular) tracks\n- show me the [latest album](spot:LatestAlbum) by Madonna\n- show me the [first album](spot:FirstAlbum) by REM\n- show me the [top 5 albums](spot:TopFiveAlbums)  by Madonna\n- show me the [top 10 albums](spot:TopTenAlbums)  by Madonna\n- show me the [top ten albums](spot:TopTenAlbums)  by Madonna\n- show me the [top five albums](spot:TopFiveAlbums)  by Madonna\n- [play it](spot:PlayThis)\n- \n\n"
+patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n- what [albums](spot:Albums) does the track “Someday” appear on?\n- show me [playlists](spot:Playlists) for category Jazz\n- get [playlists](spot:Playlists) for \"Party\"\n- show me [categories](spot:Categories)\n- show me [albums](spot:Albums) by Madonna\n- [find me](spot:SearchResults) (spot:SearchQuery)\n- [dig up](spot:SearchResults) (spot:SearchQuery)\n- find [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  called \"something\"\n- show me [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  for something\n- show me [tracks](spot:Tracks) for Madonna\n- show me track for this album\n- [search for](spot:SearchResults) the most popular \"rock\"\n- show me the [track](spot:Track), the [artist](spot:Artist), and the [album](spot:Album) \n- [by](spot:Relation)\n- [for](spot:Relation)\n- [search](:ActionShow)\n- [most popular](spot:MostPopular) tracks\n- [least popular](spot:LeastPopular)\n- [unknown](spot:Unknown)\n- show me the [latest album](spot:LatestAlbum) by Madonna\n- show me the [first album](spot:FirstAlbum) by REM\n- show me the [top 5 albums](spot:TopFiveAlbums)  by Madonna\n- show me the [top 10 albums](spot:TopTenAlbums)  by Madonna\n- show me the [top ten albums](spot:TopTenAlbums)  by Madonna\n- show me the [top five albums](spot:TopFiveAlbums)  by Madonna\n- [play it](spot:PlayThis)\n- \n\n"
 actions:
   - name: 'spot:TrackForAlbum'
     signature: 'spot:Tracks (spot:Relation (context spot:Albums)) -> data spot:Tracks'
@@ -439,7 +445,7 @@ actions:
       // let country = p.get("spot:Country")
         
         let types = "";
-        if (popular == "spot:MostPopular" ) 
+        if (["spot:MostPopular","spot:LeastPopular","spot:Unknown"] .includes(popular) ) 
            types = "track"
         else 
            types = "artist,album,track"
@@ -472,10 +478,14 @@ actions:
             
             if (result.tracks) {
               if (popular == "spot:MostPopular") {
-                progress += " SORTING>.................>>>"
                 items.push(...result.tracks.items.sort((itema,itemb) => 
                   itemb.popularity-itema.popularity).slice(0,9));
-              }  else {
+              }  
+              else if (["spot:Unknown","spot:LeastPopular"].includes(popular)) {
+                items.push(...result.tracks.items.sort((itema,itemb) => 
+                  itema.popularity-itemb.popularity).slice(0,9));
+              }
+              else {
                 items.push(...result.tracks.items)
               }
               //progress += " Search:" + JSON.stringify(items)
