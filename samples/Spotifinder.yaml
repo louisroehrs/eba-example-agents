@@ -17,6 +17,26 @@ secrets:
   - name: spotClientSecret
   - name: spotClientId
 concepts:
+  - name: 'spot:PlayThis'
+  - name: 'spot:TopTenAlbums'
+  - name: 'spot:TopFiveAlbums'
+  - name: 'spot:TopTen'
+    ontology:
+      subClassOf: 'spot:Tops'
+      isSpellAs: top ten
+  - name: 'spot:Tops'
+  - name: 'spot:TopFive'
+    ontology:
+      isSpellAs: top five
+      subClassOf: 'spot:Tops'
+  - name: 'spot:Search'
+  - name: 'spot:Popular'
+    ontology:
+      isSpellAs: popular
+  - name: 'spot:MostPopular'
+    ontology:
+      subClassOf: 'spot:Tops'
+      isSpellAs: most popular
   - name: 'spot:FirstAlbum'
     ontology:
       isSpellAs: first album
@@ -136,7 +156,7 @@ concepts:
     ontology:
       subClassOf: ':UserString'
   - name: ':ActionShow'
-patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n- what [albums](spot:Albums) does the track “Someday” appear on?\n- show me [playlists](spot:Playlists) for category Jazz\n- get [playlists](spot:Playlists) for \"Party\"\n- show me [categories](spot:Categories)\n- show me [albums](spot:Albums) by Madonna\n- [find me](spot:SearchResults) (spot:SearchQuery)\n- [dig up](spot:SearchResults) (spot:SearchQuery)\n- find [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  called \"something\"\n- show me [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  for something\n- show me [tracks](spot:Tracks) for Madonna\n- show me track for this album\n- [search for](spot:SearchResults) query\n- show me the [track](spot:Track), the [artist](spot:Artist), and the [album](spot:Album) \n- [by](spot:Relation)\n- [for](spot:Relation)\n- [search](:ActionShow)\n- show me the [latest album](spot:LatestAlbum) by Madonna\n- show me the [first album](spot:FirstAlbum) by REM\n\n\n"
+patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n- what [albums](spot:Albums) does the track “Someday” appear on?\n- show me [playlists](spot:Playlists) for category Jazz\n- get [playlists](spot:Playlists) for \"Party\"\n- show me [categories](spot:Categories)\n- show me [albums](spot:Albums) by Madonna\n- [find me](spot:SearchResults) (spot:SearchQuery)\n- [dig up](spot:SearchResults) (spot:SearchQuery)\n- find [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  called \"something\"\n- show me [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  for something\n- show me [tracks](spot:Tracks) for Madonna\n- show me track for this album\n- [search for](spot:SearchResults) query\n- show me the [track](spot:Track), the [artist](spot:Artist), and the [album](spot:Album) \n- [by](spot:Relation)\n- [for](spot:Relation)\n- [search](:ActionShow)\n- [most popular](spot:MostPopular) tracks\n- show me the [latest album](spot:LatestAlbum) by Madonna\n- show me the [first album](spot:FirstAlbum) by REM\n- show me the [top 5 albums](spot:TopFiveAlbums)  by Madonna\n- show me the [top 10 albums](spot:TopTenAlbums)  by Madonna\n- show me the [top ten albums](spot:TopTenAlbums)  by Madonna\n- show me the [top five albums](spot:TopFiveAlbums)  by Madonna\n- [play it](spot:PlayThis)\n- \n\n"
 actions:
   - name: 'spot:TrackForAlbum'
     signature: 'spot:Tracks (spot:Relation (context spot:Albums)) -> data spot:Tracks'
@@ -253,8 +273,9 @@ actions:
     active: true
   - name: 'spot:GetAlbumsByArtist'
     signature: >-
-      timing subClassOf spot:Timing => spot:Albums (spot:Relation (data
-      :FreeText, optional timing)) -> data spot:Albums
+      timing subClassOf spot:Timing, tops subClassOf spot:Tops => spot:Albums
+      (spot:Relation (data :FreeText, optional timing, optional tops)) -> data
+      spot:Albums
     kind: 'nodejs:10'
     code: |+
       const eba = require("eba")
@@ -264,7 +285,7 @@ actions:
         let p = new eba.Params(params)
         let searchquery = p.get(":FreeText")
         let timing = p.getName("timing")
-
+       let tops = p.getName("tops")
 
       // let country = p.get("spot:Country")
         
@@ -278,6 +299,8 @@ actions:
           
         let progress = "Status: Reached query"
         progress += "Timing " + timing
+        progress += "Tops " + tops
+
         progress += " Access Token: " + options.headers.Authorization
         progress += " Search:" + JSON.stringify(searchquery)
         progress += "Path: " + options.uri
@@ -295,6 +318,11 @@ actions:
                      new Date(itemb.release_date) - new Date(itema.release_date))[0]);
                 (timing == "spot:First") && items.push(result.albums.items.filter(item => item.artists[0].name.toLowerCase() == searchquery.toLowerCase() ).sort((itema,itemb) => 
                      new Date(itema.release_date) - new Date(itemb.release_date))[0]);
+                     
+                (tops == "spot:TopFive") && items.push(result.albums.items.filter(item => item.artists[0].name.toLowerCase() == searchquery.toLowerCase() ).sort((itema,itemb) => 
+                     itemb.popularity - itema.popularity).slice(0,4));
+                (tops == "spot:TopTen") && items.push(result.albums.items.filter(item => item.artists[0].name.toLowerCase() == searchquery.toLowerCase() ).sort((itema,itemb) => 
+                     itemb.popularity - itema.popularity).slice(0,9));
             }
         //   items.push({id:"spot:GetAlbumsByArtist", "name": `searching for "${searchquery}" `,"type":"all","timing":timing})
             if (items.length > 0) {
@@ -392,7 +420,9 @@ actions:
     notes: works
     active: true
   - name: 'spot:SearchAction'
-    signature: 'spot:SearchResults (data :UserString) -> data spot:SearchResults'
+    signature: >-
+      tops subClassOf spot:Tops => spot:SearchResults (data :UserString,
+      optional tops) -> data spot:SearchResults
     kind: 'nodejs:10'
     code: >+
       const eba = require("eba")
@@ -403,12 +433,19 @@ actions:
       module.exports.main = async (params) => {
         let p = new eba.Params(params)
         let searchquery = p.get(":UserString")
+        let popular = p.getName("tops")
 
 
       // let country = p.get("spot:Country")
         
+        let types = "";
+        if (popular == "spot:MostPopular" ) 
+           types = "track"
+        else 
+           types = "artist,album,track"
+           
         let options = {
-            uri:  `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchquery)}&type=artist,album,track`,
+            uri:  `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchquery)}&type=${types}`,
             headers: {
               "Authorization": "Bearer " + params.storage["token"]
             },
@@ -418,6 +455,7 @@ actions:
         let progress = "Status: Reached query"
         progress += " Access Token: " + options.headers.Authorization
         progress += " Search:" + JSON.stringify(searchquery)
+        progress += " Popular:"+  popular
         progress += "Path: " + options.uri
         
         return request(options)
@@ -431,8 +469,18 @@ actions:
             if (result.albums) {
               items.push(...result.albums.items)
             }
+            
             if (result.tracks) {
-              items.push(...result.tracks.items)
+              if (popular == "spot:MostPopular") {
+                progress += " SORTING>.................>>>"
+                items.push(...result.tracks.items.sort((itema,itemb) => 
+                  itemb.popularity-itema.popularity).slice(0,9));
+              }  else {
+                items.push(...result.tracks.items)
+              }
+              //progress += " Search:" + JSON.stringify(items)
+              //return { error: `SPOT Debug:  Progress: ${progress}` }
+
             }
             if (items.length > 0) {
               return new eba.Result().setData("spot:SearchResults", items)
@@ -441,13 +489,19 @@ actions:
         )
         .catch(function (error) {
           //return { error: `No search results were found for "${p.get(":UserString")}"` }
-          return { error: `SPOT: API error: ${error}  Progress: ${progress}` }
+          return { error: `SPOT Search: API error: ${error}  Progress: ${progress}` }
         })
       }
 
     notes: show me "search"
     active: true
 rules:
+  - name: ''
+    signature: 'spot:TopTenAlbums -> spot:Albums (spot:TopTen)'
+  - name: ''
+    signature: 'spot:TopFiveAlbums -> spot:Albums (spot:TopFive)'
+  - name: ''
+    signature: 'spot:MostPopular -> spot:SearchResults (spot:Popular)'
   - name: ''
     signature: 'spot:FirstAlbum -> spot:Albums (spot:First)'
   - name: ''
@@ -530,7 +584,12 @@ statics:
           <div key={item.id} className="wmt-product" style={{float:'left'}}>
             <div className="wmt-product-info">
               <div className="wmt-product-info-name">
-                <p><strong>{item.name}</strong> <br/>{item.total_tracks} Tracks<br/>Released {item.release_date}</p> 
+                <p><strong>{item.name}</strong> 
+                <br/>{item.total_tracks} Tracks
+                <br/>Released {item.release_date}
+             
+                </p>
+            
                 <img src={item.images[0].url}/>
               </div> 
             </div>
@@ -544,7 +603,11 @@ statics:
           <div key={item.id} className="wmt-product">
             <div className="wmt-product-info">
               <div className="wmt-product-info-name">
-                <p><strong>{item.name}</strong> <br/>{item.total_tracks} Tracks<br/>Released {item.release_date}</p> 
+                <p><strong>{item.name}</strong> 
+                <br/>{item.total_tracks} Tracks
+                <br/>Released {item.release_date}
+           
+                 </p> 
                 <img src={item.images[0].url}/>
               </div> 
             </div>
@@ -628,7 +691,10 @@ statics:
           <div key={item.id} className="wmt-product">
             <div className="wmt-product-info">
               <div className="wmt-product-info-name">
-                <p><strong>{item.name}</strong> <br/>by {item.artists[0].name}</p> 
+                <p><strong>{item.name}</strong> 
+                  <br/>by {item.artists[0].name}
+                  <br/>Popularity {item.popularity}
+                  </p>
                 <img src={item.album.images[0].url}/>
               </div> 
             </div>
