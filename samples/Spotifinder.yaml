@@ -592,7 +592,7 @@ statics:
         const item = data
         console.log(JSON.stringify(item));
         return (
-          <div key={item.id} className="wmt-product" style={{float:'left'}}>
+          <div key={item.id} className="wmt-product" style={{float:'left'}} onClick={() => { window.open(item.uri,"_self"); return null;} }>
             <div className="wmt-product-info">
               <div className="wmt-product-info-name">
                 <p><strong>{item.name}</strong> 
@@ -611,7 +611,7 @@ statics:
         const item = data
         console.log(JSON.stringify(item));
         return (
-          <div key={item.id} className="wmt-product">
+          <div key={item.id} className="wmt-product" onClick={() => { window.open(item.uri,"_self"); return null;} }>
             <div className="wmt-product-info">
               <div className="wmt-product-info-name">
                 <p><strong>{item.name}</strong> 
@@ -669,7 +669,7 @@ statics:
         const item = data;
         console.log("dd"+JSON.stringify(item));
         return (
-          <div key={item.id} className="wmt-product" >
+          <div key={item.id} className="wmt-product" onClick={() => { window.open(item.uri,"_self"); return null;} } >
             <div className="wmt-product-info">
               <div className="wmt-product-info-name">
                 <p><strong>{item.name}</strong></p> 
@@ -692,7 +692,7 @@ statics:
         const item = data
         console.log(JSON.stringify(item));
         return (
-          <div key={item.id} className="wmt-product"  >
+          <div key={item.id} className="wmt-product"  onClick={() => { window.open(item.uri,"_self"); return null;} }>
             <div className="wmt-product-info">
               <div className="wmt-product-info-name">
                 <p><strong>{item.name}</strong></p> 
@@ -709,13 +709,12 @@ statics:
         const item = data
         console.log(JSON.stringify(item));
         return (
-          <div key={item.id} className="wmt-product">
+          <div key={item.id} className="wmt-product" onClick={() => { window.open(item.uri,"_self"); return null;} }>
             <div className="wmt-product-info">
               <div className="wmt-product-info-name" data-id={item.external_urls.spotify}>
                 <p><strong>{item.name}</strong> 
                   <br/>by {item.artists[0].name}
                   <br/>Popularity {item.popularity}
-                  
                   </p>
                 <img src={item.album.images[0].url}/>
               </div> 
