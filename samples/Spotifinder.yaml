@@ -10,6 +10,8 @@ meta:
     - make a playlist with these  -- coming soon
     - more   -- coming soon
     - show me the most popular tracks, etc.
+    - show me most popular now  (i.e. three top hits in the past year)
+    - show me new hits
 settings:
   - name: spotAuthUrl
     value: 'https://accounts.spotify.com/api/token'
@@ -17,6 +19,19 @@ secrets:
   - name: spotClientSecret
   - name: spotClientId
 concepts:
+  - name: 'spot:Music'
+    ontology:
+      isSpellAs: music
+      subClassOf: 'spot:Albums'
+  - name: 'spot:ClassicalGenre'
+    ontology:
+      subClassOf: 'spot:MusicGenre'
+      isSpellAs: classical
+  - name: 'spot:MusicGenre'
+  - name: 'spot:ClassicalMusic'
+    ontology:
+      isSpellAs: classical music
+  - name: 'spot:Play'
   - name: ':IsThere'
   - name: 'spot:Unknown'
     ontology:
@@ -92,6 +107,8 @@ concepts:
     ontology:
       isSpellAs: tracks|*
   - name: 'spot:AssetType'
+    ontology:
+      isSpellAs: music
   - name: 'spot:SearchResults'
     ontology:
       isSpellAs: search results
@@ -163,7 +180,7 @@ concepts:
     ontology:
       subClassOf: ':UserString'
   - name: ':ActionShow'
-patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n- what [albums](spot:Albums) does the track “Someday” appear on?\n- show me [playlists](spot:Playlists) for category Jazz\n- get [playlists](spot:Playlists) for \"Party\"\n- show me [categories](spot:Categories)\n- show me [albums](spot:Albums) by Madonna\n- [find me](spot:SearchResults) (spot:SearchQuery)\n- [dig up](spot:SearchResults) (spot:SearchQuery)\n- find [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  called \"something\"\n- show me [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  for something\n- show me [tracks](spot:Tracks) for Madonna\n- show me track for this album\n- [search](spot:SearchResults) the most popular \"rock\"\n- [search for](:ActionShow) the most popular \"rock\"\n- show me the [track](spot:Track), the [artist](spot:Artist), and the [album](spot:Album) \n- [by](spot:Relation)\n- [for](spot:Relation)\n- [most popular](spot:MostPopular) tracks\n- [least popular](spot:LeastPopular)\n- [unknown](spot:Unknown)\n- show me the [latest album](spot:LatestAlbum) by Madonna\n- show me the [first album](spot:FirstAlbum) by REM\n- show me the [earliest album](spot:FirstAlbum) by REM\n- show me the [top 5 albums](spot:TopFiveAlbums)  by Madonna\n- show me the [top 10 albums](spot:TopTenAlbums)  by Madonna\n- show me the [top ten albums](spot:TopTenAlbums)  by Madonna\n- show me the [top five albums](spot:TopFiveAlbums)  by Madonna\n- [i want some](spot:SearchResults) music for programming agents\n- [play it](spot:PlayThis)\n- who made \"Song\"\n- add this song to playlist \"Freddy\"\n- add this track to playlist \"Kruger\"\n\n\n"
+patterns: "<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n<!--\n\tEnter your NL patterns in this markdown panel. \n\tA pattern consists of natural language text annotated with concepts tags. \n\tFor example,\n\t 'tell me a [joke](demo:Joke)' annotates the demo:Joke concept appropriately\n\t 'show me the [weather](demo:Weather)' annotates the demo:Weather concept appropriately. \n\tWe even support regular expression annotations.\n\t For example, '[`REGEX [0-9]{5}`](demo:ZIPCode)' provides a zip code annotation.\n-->\n- what [albums](spot:Albums) does the track “Someday” appear on?\n- show me [playlists](spot:Playlists) for category Jazz\n- get [playlists](spot:Playlists) for \"Party\"\n- show me [categories](spot:Categories)\n- show me [albums](spot:Albums) by Madonna\n- show me [abums](spot:Albums) by joe\n- show me [music](spot:Music) [composed by](spot:Relation) Beethoven\n- [find me](spot:SearchResults) (spot:SearchQuery)\n- [dig up](spot:SearchResults) (spot:SearchQuery)\n- find [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  called \"something\"\n- show me [tracks](spot:Tracks), [artists](spot:Artists), [albums](spot:Albums)  for something\n- show me [tracks](spot:Tracks) for Madonna\n- show me track for this album\n- [search](spot:SearchResults) the most popular \"rock\"\n- [search for](:ActionShow) the most popular \"rock\"\n- show me the [track](spot:Track), the [artist](spot:Artist), and the [album](spot:Album) \n- [by](spot:Relation)\n- [for](spot:Relation)\n- [most popular](spot:MostPopular) tracks\n- [least popular](spot:LeastPopular)\n- [unknown](spot:Unknown)\n- show me the [latest album](spot:LatestAlbum) by Madonna\n- show me the [first album](spot:FirstAlbum) by REM\n- show me the [earliest album](spot:FirstAlbum) by REM\n- show me the [top 5 albums](spot:TopFiveAlbums)  by Madonna\n- show me the [top 10 albums](spot:TopTenAlbums)  by Madonna\n- show me the [top ten albums](spot:TopTenAlbums)  by Madonna\n- show me the [top five albums](spot:TopFiveAlbums)  by Madonna\n- [i want some](spot:SearchResults) music for programming agents\n- [play it](spot:PlayThis)\n- [play](spot:Play) some classical music\n- who made \"Song\"\n- add this song to playlist \"Freddy\"\n- add this track to playlist \"Kruger\"\n\n\n"
 actions:
   - name: 'spot:TrackForAlbum'
     signature: 'spot:Tracks (spot:Relation (context spot:Albums)) -> data spot:Tracks'
@@ -280,9 +297,9 @@ actions:
     active: true
   - name: 'spot:GetAlbumsByArtist'
     signature: >-
-      timing subClassOf spot:Timing, tops subClassOf spot:Tops => spot:Albums
-      (spot:Relation (data :FreeText, optional timing, optional tops)) -> data
-      spot:Albums
+      timing subClassOf spot:Timing, tops subClassOf spot:Tops, genre subClassOf
+      spot:MusicGenre => spot:Albums (optional spot:Relation (data :FreeText,
+      optional timing, optional tops, optional genre)) -> data spot:Albums
     kind: 'nodejs:10'
     code: |+
       const eba = require("eba")
@@ -292,8 +309,22 @@ actions:
         let p = new eba.Params(params)
         let searchquery = p.get(":FreeText")
         let timing = p.getName("timing")
-       let tops = p.getName("tops")
+        let tops = p.getName("tops")
+        let genre = p.getName("genre")
 
+        const artistfilter = (item,searchquery) => {
+          return item => item.artists[0].name.toLowerCase().contains(searchquery.toLowerCase())
+        }
+        
+        if ( genre != null) {
+          genre = genre.substring(genre.indexOf(":")+1,genre.indexOf("Genre")).toLowerCase()
+
+          if ( searchquery != null) {
+            searchquery += " " + genre
+          } else {
+            searchquery = genre
+          }
+        }
       // let country = p.get("spot:Country")
         
         let options = {
@@ -320,15 +351,15 @@ actions:
             if (result.albums) {
               
                 (timing == null) &&
-                  items.push(...result.albums.items.filter(item => item.artists[0].name.toLowerCase() == searchquery.toLowerCase() ));
-                (timing == "spot:Latest") && items.push(result.albums.items.filter(item => item.artists[0].name.toLowerCase() == searchquery.toLowerCase() ).sort((itema,itemb) => 
+                  items.push(...result.albums.items.filter(item => artistfilter(item,searchquery) ));
+                (timing == "spot:Latest") && items.push(result.albums.items.filter(item => artistfilter(item,searchquery)).sort((itema,itemb) => 
                      new Date(itemb.release_date) - new Date(itema.release_date))[0]);
-                (timing == "spot:First") && items.push(result.albums.items.filter(item => item.artists[0].name.toLowerCase() == searchquery.toLowerCase() ).sort((itema,itemb) => 
+                (timing == "spot:First") && items.push(result.albums.items.filter(item => artistfilter(item,searchquery) ).sort((itema,itemb) => 
                      new Date(itema.release_date) - new Date(itemb.release_date))[0]);
                      
-                (tops == "spot:TopFive") && items.push(...result.albums.items.filter(item => item.artists[0].name.toLowerCase() == searchquery.toLowerCase() ).sort((itema,itemb) => 
+                (tops == "spot:TopFive") && items.push(...result.albums.items.filter(item => artistfilter(item,searchquery)).sort((itema,itemb) => 
                      itemb.popularity - itema.popularity).slice(0,4));
-                (tops == "spot:TopTen") && items.push(...result.albums.items.filter(item => item.artists[0].name.toLowerCase() == searchquery.toLowerCase() ).sort((itema,itemb) => 
+                (tops == "spot:TopTen") && items.push(...result.albums.items.filter(item => artistfilter(item,searchquery)).sort((itema,itemb) => 
                      itemb.popularity - itema.popularity).slice(0,9));
             }
         //   items.push({id:"spot:GetAlbumsByArtist", "name": `searching for "${searchquery}" `,"type":"all","timing":timing})
@@ -508,6 +539,10 @@ actions:
     active: true
 rules:
   - name: ''
+    signature: 'spot:Music -> spot:Albums'
+  - name: ''
+    signature: 'spot:ClassicalMusic -> spot:Albums (spot:ClassicalGenre)'
+  - name: ''
     signature: 'spot:TopTenAlbums -> spot:Albums (spot:TopTen)'
   - name: ''
     signature: 'spot:TopFiveAlbums -> spot:Albums (spot:TopFive)'
@@ -597,7 +632,7 @@ statics:
               <div className="wmt-product-info-name">
                 <p><strong>{item.name}</strong> 
                 <br/>{item.total_tracks} Tracks
-                <br/>Released {item.release_date}
+                <br/>{item.release_date}
              
                 </p>
             
@@ -616,7 +651,7 @@ statics:
               <div className="wmt-product-info-name">
                 <p><strong>{item.name}</strong> 
                 <br/>{item.total_tracks} Tracks
-                <br/>Released {item.release_date}
+                <br/>{item.release_date}
                  </p> 
                 <img src={item.images[0].url}/>
               </div> 
