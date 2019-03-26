@@ -812,7 +812,7 @@ statics:
         const item = data
         console.log(JSON.stringify(item));
         return (
-          <div key={item.id} className="wmt-product" style={{float:'left'}}>
+          <div key={item.id} className="wmt-product" style={{float:'left'}} onClick={() => { window.open(item.uri,"_self"); return null;} }>
             <div className="wmt-product-info">
               <div className="wmt-product-info-name">
                 <p><strong>{item.name}</strong> {item.tracks.total}</p> 
@@ -826,7 +826,7 @@ statics:
         const item = data
         console.log(JSON.stringify(item));
         return (
-          <div key={item.id} className="wmt-product">
+          <div key={item.id} className="wmt-product" onClick={() => { window.open(item.uri,"_self"); return null;} }>
             <div className="wmt-product-info">
               <div className="wmt-product-info-name">
                 <p><strong>{item.name}</strong> {item.tracks.total}</p> 
@@ -899,7 +899,7 @@ statics:
         const item = data
         console.log(JSON.stringify(item));
         return (
-          <div key={item.id} className="wmt-product"  onClick={function() {bridge.trigger("ask","show me playlists for category \"" + item.name+"\"")}} >
+          <div key={item.id} className="wmt-product"  onClick={function() {bridge.trigger("ask","show me playlists for  " + item.name)}} >
             <div className="wmt-product-info">
               <div className="wmt-product-info-name">
                 <p><strong>{item.name}</strong></p> 
