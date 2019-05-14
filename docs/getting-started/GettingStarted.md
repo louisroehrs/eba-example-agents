@@ -1,8 +1,22 @@
 ## Getting started
 
-Welcome to Watson Assistant development! This article serves as a getting started guide for developers who are unfamiliar with our unique machine reasoning programming model. As a tutorial, we will develop our sample Walmart agent from scratch. This agent will be able to answer various questions about trending products. You may reference and try out [the complete working sample](../../samples/Walmart.md) any time you wish.
+Welcome to EBA development! This article serves as a getting started guide for developers who are unfamiliar with our unique machine reasoning programming model. First, we provide a brief overview of EBA's collaborative reasoning pipeline. This will help you get a solid grasp of the fundamentals before you dive into building your first agent. Next, we provide a tutorial which guides the development of a sample Walmart agent from scratch. This agent will be able to answer various questions about trending products. You may reference and try out [the complete working sample](../../samples/Walmart.md) any time you wish.
 
-### Workflow
+### Reasoning pipeline
+The steps below essentially describe how EBA works, and demonstrates the journey of a user's question through EBA's collaborative reasoning pipeline.
+
+Encoded conceptual knowledge: Developers encode a set of concepts and relationships to tell our assistant what it can understand and reason about. Without conceptual entities, there is effectively nothing to reason about.
+
+SyntaxTree creation: A user’s natural language question is broken down into its morphological and syntactical features and represented as a tree.
+
+Annotation: Natural language within a user’s syntax tree is annotated or mapped to conceptual entities.
+
+Reasoning: Given a starting point of conceptual entities, EBA considers all possible outcome paths and reasons to produce the most relevant one.
+
+Execution: Having settled on the appropriate action path, EBA executes that path including any side effects it may produce.
+
+
+### Development workflow
 - [ontology](./Ontology.md)
 - [patterns](./Patterns.md)
 - [actions](./Actions.md)
@@ -19,6 +33,6 @@ Secondly, we encourage the developer to implement [natural language patterns](..
 
 The term 'weather' signifies a noun subject in this case. However, the word 'weather' can contain a very different semantic meaning in other sentences, e.g. 'can we weather the storm?'. Based on the natural language pattern above, Watson will understand that this usage of 'weather' is different from the first usage and, subsequently, it will not introduce the concept `:Weather` into its reasoning pipeline when answering the second type of question.
 
-Next we propose that [semantic actions](../components/Actions.md) and [rewriting rules](../components/Rules.md) should be developed. Reasoning in Watson Assistant is performed on a graph, where concepts represent nodes within this graph. The goal of actions is to produce real data for these concepts. For instance, if a user asks 'show me all products'. Watson will reason about the concept `wmt:Products` during reasoning time. During execution time, when it is ready to produce a response to this question, it should be able to produce real data via an executor function. This function may make a call to an external api or database to produce data. A rule, on the other hand, represents a kind of translation between concepts. Typically we will translate higher level concepts into lower level concepts.
+Next we propose that [semantic actions](../components/Actions.md) and [rewriting rules](../components/Rules.md) should be developed. Reasoning in EBA is performed on a graph, where concepts represent nodes within this graph. The goal of actions is to produce real data for these concepts. For instance, if a user asks 'show me all products'. Watson will reason about the concept `wmt:Products` during reasoning time. During execution time, when it is ready to produce a response to this question, it should be able to produce real data via an executor function. This function may make a call to an external api or database to produce data. A rule, on the other hand, represents a kind of translation between concepts. Typically we will translate higher level concepts into lower level concepts.
 
 Lastly, we encourage the development of visualizations for the data you are producing from your actions. All the data produced in your actions will be passed to your front end visualizers so that you can customize the visualization of your data. Visualizers are implemented as front end [assets](../lab/Assets.md).

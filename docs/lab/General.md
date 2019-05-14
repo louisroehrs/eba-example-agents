@@ -42,14 +42,14 @@ Only the secrets `key` is part of the YAML file and will be exported. The values
 
 ### Endpoints
 
-Watson Assistant provides developers with control over various stages of its execution pipeline. Endpoints represent different processes that developers can utilize to achieve different behaviors suitable to their particular application. We support the following endpoints:
+EBA provides developers with control over various stages of its execution pipeline. Endpoints represent different processes that developers can utilize to achieve different behaviors suitable to their particular application. We support the following endpoints:
 
 - [@start](./endpoints/Start.md): session initialization process which can be useful for initializing certain resources.
 - [@annotate](./endpoints/Annotate.md): annotation process by which concepts are introduced into the syntax tree.
 - [@force](./endpoints/Force.md): lazy data execution process which converts lazy meta information into real data
 - [@react](./endpoints/React.md): event handling process for evaluating and dispatching incoming events
 - [@render](./endpoints/Render.md): rendering process used for formatted responses to external channels (Slack and Watson Workspace)
-- [@api](./../endpoints/API.md): api registration process for enabling backend operations to be executed within frontend assets
+- [@api](./endpoints/API.md): api registration process for enabling backend operations to be executed within frontend assets
 
 ### Online Help
 The online help is input for the *skills* tab (next to the content tab). All collaborating agents are contributing to the online help which will be displayed at the [skills tab](https://eba.ibm.com/assistant#/help).

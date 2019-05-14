@@ -27,15 +27,12 @@ renderFunction = (field, row) ->
 ```
 The first argument is always the value of the `field`, the second optional argument `row` contains the complete record which is used to render the current row. 
 
-For example, `["Score", "score", renderDecimal]` will display a column within the table with column name `Score` and it will populate each entry within this column by accessing the data field named `score`. It will render this item by applying the [renderDecimal](./Index.md#native-ui-components) function.
+For example, `["Score", "score", renderDecimal]` will display a column within the table with column name `Score` and it will populate each entry within this column by accessing the data field named `score`. It will render this item by applying the [renderDecimal](../Frontend.md#global-functions) function.
 
 Another coffee script example demonstrates the usage of a custom render function:
 
 ``` javascript
-["Score", "score", (field) -> 
-					if field
-						"#{field} %"
-]
+["Score", "score", (field) -> if field then "#{field} %"]
 ```
 This function checks for `null` first and if `field` is not null it adds ` %` to the `field` value.
 
@@ -48,15 +45,15 @@ For each `fieldNames` listed in `columns` property you need to add a `config` en
 
 
 ```
-fieldName: 
-	visible: true
+fieldName:
+   visible: true
  ```
 
 The following coffee script example uses the above `score` column declaration and hides it behind the scenes.
 
 ```
-"score":
-	visible: false
+score:
+    visible: false
 ```
 
 The following full blown example shows the usage of all 5 initialization properties for the Table component.
@@ -68,36 +65,21 @@ React.createElement Table,
     items: @props.data
     searchKeys: ["event_desc", "area_name", "st_name", "cntry_cd", "severity"]
     config: 
-        "area_name":
-         	visible: true
-        "st_name":
-         	visible: false
-        "cntry_name":
-         	visible: true
-        "phenomena":
-         	visible: true
-        "event_desc":
-         	visible: true
-        "certainty":
-         	visible: false
-        "class":
-         	visible: false
-        "severity":
-         	visible: true
-        "expire_time_gmt":
-         	visible: false
-        "response_types":
-         	visible: false
-        "categories":
-         	visible: true
-        "office_name":
-         	visible: false
-        "source":
-         	visible: false
-        "lat":
-         	visible: false
-        "lon":
-         	visible: false
+        "area_name": visible: true
+        "st_name": visible: false
+        "cntry_name": visible: true
+        "phenomena": visible: true
+        "event_desc": visible: true
+        "certainty": visible: false
+        "class": visible: false
+        "severity": visible: true
+        "expire_time_gmt": visible: false
+        "response_types": visible: false
+        "categories": visible: true
+        "office_name": visible: false
+        "source": visible: false
+        "lat": visible: false
+        "lon": visible: false
     configKey: "ReactComponentName"
     columns: [
         ["Area", "area_name"]

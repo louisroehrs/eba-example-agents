@@ -62,10 +62,11 @@ EBA provides global functions for rendering primitive data types which are avail
  - `renderBoolean(field)` -- renders the boolean value based on the user's locale, e.g. with `locale: de_DE` => `renderBoolean(true)` => `'wahr'`
  - `renderDecimal(field)` -- renders the number value based on the user's locale, e.g. `locale: de` => `renderDecimal(17.34)` => `'17,34'`
  - `renderPercent(field)` -- renders the percent value based on the user's locale, e.g. `locale: de` => `renderPercent(0.344)` => `'34,4%'`
- - `renderCurrency(field)` -- renders the currency value based on the user's locale, e.g. `locale: de` => `renderCurrency(17.34)` => `'17.34 EUR'`
- - `renderDate(field)` -- renders the date value based on the user's locale, e.g. `locale: fr` => `renderDate(1549369035501)` => `'5 février 2019'`
+ - `renderCurrency(field, currency='USD')` -- renders the currency value based on the user's locale, e.g. `locale: de` => `renderCurrency(17.34, 'EUR')` => `'17,34 EUR'`
+ - `renderDate(field)` -- renders the date value based on the user's locale, e.g. `locale: fr` => `renderDate(1549369035501)` => `'5 février 2019'`. 
  - `renderDuration(field)` -- renders the duration value based on the user's locale (time units are pretty well standardized), e.g. `locale: fr` => `renderDuration(0.12)` => `'120 ms'`
 
+Note: `renderDate` can work with Javascript Dates, Numbers, and Strings and, in the case the input is a number, we expect its value to be in terms of seconds.
 Note: Locale is taken from browser, and defaults to `en-us`.
 
 #### Global Objects
@@ -73,7 +74,7 @@ Note: Locale is taken from browser, and defaults to `en-us`.
 EBA provides a set of global objects which are available for frontend assets.
 
  - `bridge` object enables communication between EBA frotend and backend. Most commonly this module is used to generate a question to the backend from an event handler on the client side.
-    - `.trigger('ask', question)` -- triggers an event to ask Watson Assistant a question,   
+    - `.trigger('ask', question)` -- triggers an event to ask EBA a question,   
     e.g. `bridge.trigger('ask', 'Tell me a joke')` will execute the question `Tell me a joke` in the EBA reasoning pipeline.
     - `.trigger('showDetails', detailsObject)` -- triggers an event which passes data from Data component to Content components. This is useful in cases where the Content components is meant to show the details of a single data item which is selected from the content view (such behavior can be viewed by our Docs agent), e.g. `bridge.trigger "showDetails", {id: @props.id, node: @props.node, data: @props.data, item: item}` executed from the Data component will enable the Content component to show details for `item`.
  - `R` global object for creating DOM elements given set of arguments, e.g. `R.p null, "Hello World"` creates `<p>Hello World</p>`.
@@ -87,5 +88,6 @@ Our team provides users with a few pre-built and configurable react components t
 In particular, we support the following components:
  - [List](./frontend/React_Lists.md)
  - [Table](./frontend/React_Tables.md)
- - [Props](./frontend/React_Props.md) 
+ - [Props](./frontend/React_Props.md)
+ - [Plotly](./frontend/React_Plotly.md)
  
